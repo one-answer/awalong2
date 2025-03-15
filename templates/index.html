@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿瓦隆游戏</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .room-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .player-item {
+            padding: 8px;
+            margin: 4px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .current-player {
+            background-color: #e9ecef;
+        }
+        .player-number {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        #team-selection {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .room-header {
+            margin-bottom: 20px;
+        }
+        .room-code {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .players-list {
+            margin: 20px 0;
+        }
+        .player-item {
+            padding: 5px 0;
+        }
+        .player-item.host {
+            color: #007bff;
+            font-weight: bold;
+        }
+        .host-controls {
+            margin-top: 20px;
+        }
+        .start-button {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .start-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .waiting-message {
+            color: #6c757d;
+            font-style: italic;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        #room-code {
+            text-transform: uppercase;
+        }
+        .team-selection {
+            margin-top: 10px;
+        }
+        .action-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .action-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .leader-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .quest-vote-controls {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .vote-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .success-button, .fail-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: transform 0.1s;
+        }
+        .success-button {
+            background-color: #28a745;
+            color: white;
+        }
+        .fail-button {
+            background-color: #dc3545;
+            color: white;
+        }
+        .success-button:hover, .fail-button:hover {
+            transform: scale(1.05);
+        }
+        .waiting-message {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .next-leader-selection {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .select-leader-button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+        .select-leader-button:hover {
+            background-color: #0056b3;
+        }
+        .selected-team {
+            border: 2px solid #28a745;
+        }
+        .team-badge {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            background-color: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+        }
+        .game-over {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .winner-announcement {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .final-results {
+            margin: 20px 0;
+        }
+        .new-game-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="text-center mb-4">阿瓦隆Quest</h1>
+        
+        <!-- 主菜单 -->
+        <div id="main-menu" class="card mb-4">
+            <div class="card-body text-center">
+                <h5 class="card-title">选择操作</h5>
+                <button class="btn btn-primary m-2" onclick="showCreateRoom()">创建房间</button>
+                <button class="btn btn-success m-2" onclick="showJoinRoom()">加入房间</button>
+            </div>
+        </div>
+
+        <!-- 创建房间 -->
+        <div id="create-view" class="card mb-4" style="display: none;">
+            <div class="card-body">
+                <h5 class="card-title">创建房间</h5>
+                <div class="mb-3">
+                    <label for="create-player-name" class="form-label">玩家名称</label>
+                    <input type="text" class="form-control" id="create-player-name">
+                </div>
+                <div class="mb-3">
+                    <label for="player-count" class="form-label">玩家数量</label>
+                    <select class="form-select" id="player-count">
+                        <option value="5">5人</option>
+                        <option value="6">6人</option>
+                        <option value="7">7人</option>
+                        <option value="8">8人</option>
+                        <option value="9">9人</option>
+                        <option value="10">10人</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="createRoom()">创建房间</button>
+                <button class="btn btn-secondary" onclick="showMainMenu()">返回</button>
+            </div>
+        </div>
+
+        <!-- 加入房间 -->
+        <div id="join-view" class="card mb-4" style="display: none;">
+            <div class="card-body">
+                <h5 class="card-title">加入房间</h5>
+                <div class="form-group">
+                    <label for="join-player-name">玩家名称:</label>
+                    <input type="text" id="join-player-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="join-room-code">房间代码:</label>
+                    <input type="text" id="join-room-code" class="form-control" maxlength="4" required>
+                </div>
+                <button onclick="joinRoom()" class="btn btn-primary">加入房间</button>
+            </div>
+        </div>
+
+        <!-- 房间界面 -->
+        <div id="room-view" class="card mb-4" style="display: none;">
+            <div class="card-body">
+                <h5 class="card-title">房间信息</h5>
+                <div id="room-info"></div>
+                <button class="btn btn-danger mt-3" onclick="leaveRoom()">离开房间</button>
+            </div>
+        </div>
+
+        <!-- 游戏界面 -->
+        <div id="game-view" class="card mb-4" style="display: none;">
+            <div class="card-body">
+                <h5 class="card-title">游戏状态</h5>
+                
+                <!-- 个人角色信息 -->
+                <div class="mb-4">
+                    <h6>你的角色信息</h6>
+                    <div id="my-role-info" class="role-info"></div>
+                </div>
+
+                <!-- 玩家列表 -->
+                <div class="mb-4">
+                    <h6>玩家信息</h6>
+                    <div id="players-list" class="players-grid"></div>
+                </div>
+
+                <!-- 任务信息 -->
+                <div class="mb-4">
+                    <h6>任务信息</h6>
+                    <div id="quest-info" class="quest-info"></div>
+                </div>
+
+                <!-- 领袖选择界面 -->
+                <div id="leader-controls" class="mb-4" style="display: none;">
+                    <h6>选择任务队员</h6>
+                    <div id="team-selection"></div>
+                    <button class="btn btn-primary mt-2" onclick="submitTeam()" id="submit-team-btn" disabled>
+                        确认队员
+                    </button>
+                </div>
+
+                <!-- 添加任务投票界面 -->
+                <div id="quest-vote-controls" style="display: none;">
+                    <h3>任务投票</h3>
+                    <p>你是本次任务的队员，请选择任务结果：</p>
+                    <div class="vote-buttons">
+                        <button onclick="submitQuestVote(true)" class="success-button">
+                            成功
+                        </button>
+                        <button onclick="submitQuestVote(false)" class="fail-button">
+                            失败
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 添加选择下一任队长界面 -->
+                <div id="next-leader-selection" style="display: none;">
+                    <h3>选择下一任队长</h3>
+                    <div class="players-grid">
+                        ${gameState.players.map(player => `
+                            ${player.name !== playerName ? `
+                                <div class="player-card">
+                                    <div class="player-name">${player.name}</div>
+                                    <button onclick="selectNextLeader('${player.name}')" 
+                                            class="select-leader-button">
+                                        选为队长
+                                    </button>
+                                </div>
+                            ` : ''}
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 在连接时保存玩家名称
+        let playerName = '';
+        let roomCode = '';
+
+        // Socket.IO 连接
+        const socket = io({
+            transports: ['websocket', 'polling'],
+        });
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+
+        socket.on('player_info', (data) => {
+            console.log('Received player_info:', data);
+            if (data && data.player_info) {
+                updatePlayerInfo(data.player_info);
+            }
+        });
+
+        socket.on('room_update', (roomInfo) => {
+            console.log('Received room update:', roomInfo);
+            updateRoomInfo(roomInfo);
+        });
+
+        socket.on('game_update', (data) => {
+            console.log('Received game update:', data);
+            window.currentGameState = data.game_state;
+            updateGameView(data.game_state);
+        });
+
+        socket.on('game_started', (data) => {
+            console.log('Received game_started event:', data);
+            window.currentGameState = data.game_state;
+            showView('game-view');
+            updateGameView(data.game_state);
+        });
+
+        socket.on('quest_result', (data) => {
+            console.log('Received quest result:', data);
+            window.currentGameState = data.game_state;
+            alert(`任务${data.success ? '成功' : '失败'}！${data.fail_count > 0 ? `失败票数：${data.fail_count}` : ''}`);
+            updateGameView(data.game_state);
+        });
+
+        socket.on('game_over', (data) => {
+            console.log('Game over:', data);
+            const gameState = data.game_state;
+            const successfulQuests = gameState.successful_quests || 0;
+            const failedQuests = gameState.failed_quests || 0;
+            alert(`游戏结束！${successfulQuests >= 3 ? '正义阵营' : '邪恶阵营'}获胜！\n任务成功: ${successfulQuests}\n任务失败: ${failedQuests}`);
+            updateGameView(gameState);
+        });
+
+        // 创建房间
+        function createRoom() {
+            const playerNameInput = document.getElementById('create-player-name');
+            const playerCountInput = document.getElementById('player-count');
+            
+            console.log('Create room inputs:', {
+                playerNameInput: playerNameInput ? playerNameInput.value : 'not found',
+                playerCountInput: playerCountInput ? playerCountInput.value : 'not found'
+            });
+
+            if (!playerNameInput || !playerCountInput) {
+                console.error('Cannot find input elements');
+                return;
+            }
+
+            playerName = playerNameInput.value.trim();
+            const playerCount = parseInt(playerCountInput.value);
+            
+            if (!playerName) {
+                alert('请输入玩家名称');
+                return;
+            }
+
+            console.log('Creating room with:', { playerName, playerCount });
+            socket.emit('create_room', {
+                player_count: playerCount,
+                host_name: playerName
+            }, (response) => {
+                console.log('Create room response:', response);
+                if (response.error) {
+                    alert(response.error);
+                } else {
+                    roomCode = response.room_info.code;
+                    showView('room-view');
+                    updateRoomInfo(response.room_info);
+                }
+            });
+        }
+
+        // 加入房间
+        function joinRoom() {
+            const playerNameInput = document.getElementById('join-player-name');
+            const roomCodeInput = document.getElementById('join-room-code');
+            
+            console.log('Join room inputs:', {
+                playerNameInput: playerNameInput ? playerNameInput.value : 'not found',
+                roomCodeInput: roomCodeInput ? roomCodeInput.value : 'not found'
+            });
+
+            if (!playerNameInput || !roomCodeInput) {
+                console.error('Cannot find input elements');
+                return;
+            }
+
+            playerName = playerNameInput.value.trim();
+            roomCode = roomCodeInput.value.trim().toUpperCase();
+            
+            if (!playerName || !roomCode) {
+                alert('请输入玩家名称和房间代码');
+                return;
+            }
+
+            console.log('Joining room with:', { playerName, roomCode });
+            socket.emit('join_room', {
+                room_code: roomCode,
+                player_name: playerName
+            }, (response) => {
+                console.log('Join room response:', response);
+                if (response.error) {
+                    alert(response.error);
+                } else {
+                    showView('room-view');
+                    updateRoomInfo(response.room_info);
+                }
+            });
+        }
+
+        function showView(viewId) {
+            console.log('Showing view:', viewId);
+            // 隐藏所有视图
+            const views = ['create-view', 'join-view', 'room-view', 'game-view'];
+            views.forEach(view => {
+                const element = document.getElementById(view);
+                if (element) {
+                    element.style.display = 'none';
+                }
+            });
+            
+            // 显示指定视图
+            const targetView = document.getElementById(viewId);
+            if (targetView) {
+                targetView.style.display = 'block';
+            }
+
+            // 如果显示游戏视图，隐藏主菜单
+            if (viewId === 'game-view') {
+                const mainMenu = document.getElementById('main-menu');
+                if (mainMenu) {
+                    mainMenu.style.display = 'none';
+                }
+            }
+        }
+
+        function showMainMenu() {
+            showView('main-menu');
+        }
+
+        function showCreateRoom() {
+            showView('create-view');
+        }
+
+        function showJoinRoom() {
+            showView('join-view');
+        }
+
+        // 更新房间信息
+        function updateRoomInfo(roomInfo) {
+            console.log('Updating room info:', roomInfo);
+            const roomInfoDiv = document.getElementById('room-info');
+            if (!roomInfoDiv) {
+                console.error('Cannot find room-info element');
+                return;
+            }
+
+            // 检查当前玩家是否是房主
+            const isCurrentPlayerHost = roomInfo.host_name === playerName;
+            console.log('Current player is host:', isCurrentPlayerHost);
+
+            roomInfoDiv.innerHTML = `
+                <div class="room-header">
+                    <h2>房间信息</h2>
+                    <p class="room-code">房间代码: ${roomInfo.code}</p>
+                    <p class="player-count">玩家数量: ${roomInfo.players.length}/${roomInfo.player_count}</p>
+                </div>
+                <div class="players-list">
+                    <h3>玩家列表:</h3>
+                    <ul>
+                        ${roomInfo.players.map(player => `
+                            <li class="player-item ${player.is_host ? 'host' : ''}">
+                                ${player.name} ${player.is_host ? '(房主)' : ''}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                ${isCurrentPlayerHost ? `
+                    <div class="host-controls">
+                        <button 
+                            onclick="startGame()" 
+                            class="start-button"
+                            ${roomInfo.players.length === roomInfo.player_count ? '' : 'disabled'}
+                        >
+                            开始游戏
+                        </button>
+                        ${roomInfo.players.length === roomInfo.player_count ? '' : 
+                            `<p class="waiting-message">等待玩家加入 (${roomInfo.players.length}/${roomInfo.player_count})</p>`}
+                    </div>
+                ` : `
+                    <p class="waiting-message">等待房主开始游戏...</p>
+                `}
+            `;
+
+            console.log('Room info updated successfully');
+        }
+
+        // 开始游戏
+        function startGame() {
+            console.log('Starting game...');
+            socket.emit('start_game', {
+                room_code: roomCode,
+                player_name: playerName
+            }, (response) => {
+                console.log('Start game response:', response);
+                if (response.error) {
+                    alert(response.error);
+                }
+            });
+        }
+
+        function updatePlayerInfo(playerInfo) {
+            console.log('Updating player info:', playerInfo);
+            const gameView = document.getElementById('game-view');
+            if (!gameView) {
+                console.error('Cannot find game-view element');
+                return;
+            }
+
+            // 更新玩家信息区域
+            const playerInfoDiv = document.createElement('div');
+            playerInfoDiv.className = 'player-info';
+            playerInfoDiv.innerHTML = `
+                <h3>你的角色信息:</h3>
+                <div class="role-info">
+                    ${playerInfo.map(info => {
+                        if (info.is_self) {
+                            return `
+                                <div class="self-info">
+                                    <p>角色: ${info.role}</p>
+                                    <p>阵营: ${info.team_display}</p>
+                                </div>
+                            `;
+                        }
+                        return '';
+                    }).join('')}
+                </div>
+            `;
+
+            // 如果已存在则替换，否则添加
+            const existingInfo = gameView.querySelector('.player-info');
+            if (existingInfo) {
+                existingInfo.replaceWith(playerInfoDiv);
+            } else {
+                gameView.insertBefore(playerInfoDiv, gameView.firstChild);
+            }
+        }
+
+        function getTeamDisplayName(team) {
+            const teamNames = {
+                'GOOD': '正义阵营',
+                'EVIL': '邪恶阵营'
+            };
+            return teamNames[team] || '未知';
+        }
+
+        function updateGameStatus(gameState) {
+            console.log('Updating game status:', gameState);
+            // 更新任务信息
+            const questInfo = document.getElementById('quest-info');
+            questInfo.innerHTML = `
+                <div class="quest-status">
+                    <div>当前任务：第 ${gameState.quest_number} 轮</div>
+                    <div>需要队员：${gameState.current_quest.required_players} 人</div>
+                    <div>任务结果：${gameState.quest_results.map((result, i) => 
+                        `第${i + 1}轮: ${result ? '成功' : '失败'}`).join(', ') || '无'}</div>
+                </div>
+            `;
+
+            // 更新领袖选择界面
+            const leaderControls = document.getElementById('leader-controls');
+            if (gameState.current_leader === playerName) {
+                leaderControls.style.display = 'block';
+                updateTeamSelection(gameState);
+            } else {
+                leaderControls.style.display = 'none';
+            }
+        }
+
+        function updateTeamSelection(gameState) {
+            const teamSelection = document.getElementById('team-selection');
+            teamSelection.innerHTML = gameState.players.map(player => `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" 
+                           value="${player.name}" id="player-${player.name}"
+                           onchange="handleTeamSelection('${player.name}')"
+                           ${selectedTeam.has(player.name) ? 'checked' : ''}>
+                    <label class="form-check-label" for="player-${player.name}">
+                        ${player.name}
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        function checkTeamSize(requiredPlayers) {
+            const selectedPlayers = document.querySelectorAll('#team-selection input:checked');
+            const submitButton = document.getElementById('submit-team-btn');
+            submitButton.disabled = selectedPlayers.length !== requiredPlayers;
+        }
+
+        function submitTeam() {
+            console.log('Submitting team:', Array.from(selectedTeam));
+            if (selectedTeam.size !== window.currentGameState.current_quest.required_players) {
+                alert(`请选择 ${window.currentGameState.current_quest.required_players} 名队员`);
+                return;
+            }
+
+            socket.emit('submit_team', {
+                room_code: roomCode,
+                team: Array.from(selectedTeam)
+            }, (response) => {
+                console.log('Submit team response:', response);
+                if (response.error) {
+                    alert(response.error);
+                } else {
+                    selectedTeam.clear();
+                }
+            });
+        }
+
+        function leaveRoom() {
+            socket.emit('leave_room', {
+                room_code: roomCode,
+                player_name: playerName
+            }, (response) => {
+                if (response.error) {
+                    alert(response.error);
+                    return;
+                }
+                showMainMenu();
+            });
+        }
+
+        // 页面关闭时离开房间
+        window.onbeforeunload = function() {
+            if (roomCode && playerName) {
+                socket.emit('leave_room', {
+                    room_code: roomCode,
+                    player_name: playerName
+                });
+            }
+        };
+
+        // 确保HTML结构正确
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, checking elements...');
+            const requiredElements = {
+                'player-name': document.getElementById('player-name'),
+                'room-code': document.getElementById('room-code'),
+                'create-view': document.getElementById('create-view'),
+                'room-view': document.getElementById('room-view'),
+                'game-view': document.getElementById('game-view')
+            };
+
+            for (const [id, element] of Object.entries(requiredElements)) {
+                if (!element) {
+                    console.error(`Missing required element: ${id}`);
+                } else {
+                    console.log(`Found element: ${id}`);
+                }
+            }
+        });
+
+        // 添加游戏视图更新函数
+        function updateGameView(gameState) {
+            console.log('Updating game view with state:', gameState);
+            const gameView = document.getElementById('game-view');
+            if (!gameView) {
+                console.error('Cannot find game-view element');
+                return;
+            }
+
+            // 获取当前玩家信息
+            const currentPlayer = gameState.players.find(p => p.name === playerName);
+            const isLeader = gameState.current_leader === playerName;
+            const isInTeam = gameState.current_quest.team.some(p => p.name === playerName);
+
+            gameView.innerHTML = `
+                <div class="game-container">
+                    <div class="game-header">
+                        <h2>游戏进行中</h2>
+                        <p>当前任务: ${gameState.quest_number}</p>
+                        <p>当前阶段: ${gameState.current_phase}</p>
+                        <p>当前队长: ${gameState.current_leader}</p>
+                        <p>需要选择 ${gameState.current_quest.required_players} 名玩家</p>
+                    </div>
+                    
+                    <div class="players-status">
+                        <h3>玩家列表:</h3>
+                        <div class="players-grid">
+                            ${gameState.players.map(player => `
+                                <div class="player-card ${player.is_leader ? 'leader' : ''} 
+                                                  ${player.name === playerName ? 'self' : ''} 
+                                                  ${gameState.current_quest.team.some(p => p.name === player.name) ? 'selected-team' : ''}">
+                                    <div class="player-name">${player.name}</div>
+                                    ${player.name === playerName ? `
+                                        <div class="player-role">${player.role}</div>
+                                        <div class="player-team">${player.team_display}</div>
+                                    ` : ''}
+                                    ${player.is_leader ? '<div class="leader-badge">队长</div>' : ''}
+                                    ${gameState.current_quest.team.some(p => p.name === player.name) ? 
+                                        '<div class="team-badge">任务队员</div>' : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    ${isLeader && gameState.current_phase === 'LEADER_TURN' ? `
+                        <div class="leader-controls">
+                            <h3>选择任务队员</h3>
+                            <div class="team-selection">
+                                ${gameState.players.map(player => `
+                                    <div class="form-check">
+                                        <input type="checkbox" 
+                                               id="select-${player.name}" 
+                                               value="${player.name}"
+                                               onchange="handleTeamSelection('${player.name}')"
+                                               ${selectedTeam.has(player.name) ? 'checked' : ''}>
+                                        <label for="select-${player.name}">${player.name}</label>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button onclick="submitTeam()" 
+                                    id="submit-team-button" 
+                                    disabled
+                                    class="action-button">
+                                确认队伍
+                            </button>
+                        </div>
+                    ` : ''}
+
+                    ${gameState.current_phase === 'QUEST_VOTE' && isInTeam ? `
+                        <div class="quest-vote-controls">
+                            <h3>任务投票</h3>
+                            <p>你是本次任务的队员，请选择任务结果：</p>
+                            <div class="vote-buttons">
+                                <button onclick="submitQuestVote(true)" class="success-button">
+                                    成功
+                                </button>
+                                ${currentPlayer.team === 'EVIL' ? `
+                                    <button onclick="submitQuestVote(false)" class="fail-button">
+                                        失败
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    ` : gameState.current_phase === 'QUEST_VOTE' ? `
+                        <div class="waiting-message">
+                            <p>等待任务队员进行投票...</p>
+                            <p>当前任务队员：${gameState.current_quest.team.map(p => p.name).join(', ')}</p>
+                        </div>
+                    ` : ''}
+
+                    ${gameState.current_phase === 'SELECT_NEXT_LEADER' && isLeader ? `
+                        <div class="next-leader-selection">
+                            <h3>选择下一任队长</h3>
+                            <div class="players-grid">
+                                ${gameState.players.map(player => `
+                                    ${player.name !== playerName ? `
+                                        <div class="player-card">
+                                            <div class="player-name">${player.name}</div>
+                                            <button onclick="selectNextLeader('${player.name}')" 
+                                                    class="select-leader-button">
+                                                选为队长
+                                            </button>
+                                        </div>
+                                    ` : ''}
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : gameState.current_phase === 'SELECT_NEXT_LEADER' ? `
+                        <div class="waiting-message">
+                            <p>等待当前队长 ${gameState.current_leader} 选择下一任队长...</p>
+                        </div>
+                    ` : ''}
+
+                    ${gameState.current_phase === 'GAME_OVER' ? `
+                        <div class="game-over">
+                            <h2>游戏结束</h2>
+                            <p class="winner-announcement">
+                                ${gameState.successful_quests >= 3 ? '正义阵营' : '邪恶阵营'}获胜！
+                            </p>
+                            <div class="final-results">
+                                <p>任务成功: ${gameState.successful_quests || 0}</p>
+                                <p>任务失败: ${gameState.failed_quests || 0}</p>
+                            </div>
+                            <button onclick="location.reload()" class="new-game-button">
+                                开始新游戏
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            // 添加新的样式
+            const additionalStyles = `
+                .selected-team {
+                    border: 2px solid #28a745;
+                }
+                .team-badge {
+                    position: absolute;
+                    bottom: -10px;
+                    right: -10px;
+                    background-color: #28a745;
+                    color: white;
+                    padding: 5px 10px;
+                    border-radius: 15px;
+                    font-size: 0.8em;
+                }
+                .game-over {
+                    text-align: center;
+                    padding: 20px;
+                    margin: 20px 0;
+                    background-color: #f8f9fa;
+                    border-radius: 5px;
+                }
+                .winner-announcement {
+                    font-size: 1.5em;
+                    font-weight: bold;
+                    margin: 20px 0;
+                }
+                .final-results {
+                    margin: 20px 0;
+                }
+                .new-game-button {
+                    padding: 10px 20px;
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                }
+            `;
+            const style = document.createElement('style');
+            style.textContent = additionalStyles;
+            document.head.appendChild(style);
+        }
+
+        // 添加队伍选择相关函数
+        let selectedTeam = new Set();
+
+        function handleTeamSelection(playerName) {
+            console.log('Handling team selection for:', playerName);
+            const checkbox = document.getElementById(`select-${playerName}`);
+            const gameState = window.currentGameState;
+
+            if (!checkbox || !gameState) {
+                console.error('Missing required elements');
+                return;
+            }
+
+            if (checkbox.checked) {
+                selectedTeam.add(playerName);
+            } else {
+                selectedTeam.delete(playerName);
+            }
+
+            // 更新提交按钮状态
+            const submitButton = document.getElementById('submit-team-button');
+            if (submitButton) {
+                submitButton.disabled = selectedTeam.size !== gameState.current_quest.required_players;
+                console.log(`Selected team size: ${selectedTeam.size}, Required: ${gameState.current_quest.required_players}`);
+            }
+        }
+
+        function submitQuestVote(success) {
+            console.log('Submitting quest vote:', success);
+            socket.emit('submit_quest_vote', {
+                room_code: roomCode,
+                player_name: playerName,
+                success: success
+            }, (response) => {
+                console.log('Quest vote response:', response);
+                if (response.error) {
+                    alert(response.error);
+                }
+            });
+        }
+
+        // 添加选择下一任队长的函数
+        function selectNextLeader(nextLeaderName) {
+            console.log('Selecting next leader:', nextLeaderName);
+            socket.emit('select_next_leader', {
+                room_code: roomCode,
+                next_leader: nextLeaderName
+            }, (response) => {
+                console.log('Select next leader response:', response);
+                if (response.error) {
+                    alert(response.error);
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
