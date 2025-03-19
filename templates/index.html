@@ -891,38 +891,82 @@
 
         function updatePlayerInfo(playerInfo) {
             console.log('Updating player info:', playerInfo);
-            const gameView = document.getElementById('game-view');
-            if (!gameView) {
-                console.error('Cannot find game-view element');
-                return;
+            
+            // 获取自己的角色信息
+            const selfInfo = playerInfo.find(info => info.is_self);
+            
+            // 更新我的角色信息
+            const myRoleInfo = document.getElementById('my-role-info');
+            if (myRoleInfo && selfInfo) {
+                myRoleInfo.innerHTML = `
+                    <div class="self-info">
+                        <p><strong>角色:</strong> ${selfInfo.role}</p>
+                        <p><strong>阵营:</strong> ${selfInfo.team_display}</p>
+                        <p><strong>描述:</strong> ${selfInfo.role_description || ''}</p>
+                    </div>
+                `;
+                
+                // 如果是摩根勒菲，显示可见的邪恶角色信息
+                if (selfInfo.role === '摩根勒菲') {
+                    const evilPlayers = playerInfo.filter(info => 
+                        !info.is_self && info.team === 'EVIL' && info.role);
+                    
+                    if (evilPlayers.length > 0) {
+                        myRoleInfo.innerHTML += `
+                            <div class="visible-players mt-3">
+                                <p><strong>你能看到的邪恶角色:</strong></p>
+                                <ul>
+                                    ${evilPlayers.map(player => 
+                                        `<li>${player.name}: ${player.role || '未知'}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // 如果是莫德雷德的爪牙，显示摩根勒菲和王储信息
+                if (selfInfo.role === '莫德雷德的爪牙') {
+                    const visiblePlayers = playerInfo.filter(info => 
+                        !info.is_self && info.role && (info.role === '摩根勒菲' || info.role === '王儲'));
+                    
+                    if (visiblePlayers.length > 0) {
+                        myRoleInfo.innerHTML += `
+                            <div class="visible-players mt-3">
+                                <p><strong>你能看到的邪恶角色:</strong></p>
+                                <ul>
+                                    ${visiblePlayers.map(player => 
+                                        `<li>${player.name}: ${player.role || '未知'}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                }
             }
-
-            // 更新玩家信息区域
-            const playerInfoDiv = document.createElement('div');
-            playerInfoDiv.className = 'player-info';
-            playerInfoDiv.innerHTML = `
-                <h3>你的角色信息:</h3>
-                <div class="role-info">
-                    ${playerInfo.map(info => {
-                        if (info.is_self) {
-                            return `
-                                <div class="self-info">
-                                    <p>角色: ${info.role}</p>
-                                    <p>阵营: ${info.team_display}</p>
-                                </div>
-                            `;
+            
+            // 更新所有玩家列表，包括可见的信息
+            const playersList = document.getElementById('players-list');
+            if (playersList) {
+                playersList.innerHTML = playerInfo.map(info => `
+                    <div class="player-card ${info.is_leader ? 'leader' : ''} ${info.is_self ? 'self' : ''}">
+                        <span class="player-number">#${info.number}</span>
+                        <div class="player-name">${info.name}</div>
+                        ${info.is_self ? `
+                            <div class="player-role">${info.role}</div>
+                            <div class="player-team">${info.team_display}</div>
+                        ` : 
+                        info.team ? `
+                            <div class="player-team">${info.team_display || getTeamDisplayName(info.team)}</div>
+                            ${info.role ? `<div class="player-role">${info.role}</div>` : ''}
+                        ` : ''
                         }
-                        return '';
-                    }).join('')}
-                </div>
-            `;
-
-            // 如果已存在则替换，否则添加
-            const existingInfo = gameView.querySelector('.player-info');
-            if (existingInfo) {
-                existingInfo.replaceWith(playerInfoDiv);
-            } else {
-                gameView.insertBefore(playerInfoDiv, gameView.firstChild);
+                        ${info.is_leader ? '<div class="leader-badge">队长</div>' : ''}
+                    </div>
+                `).join('');
+                
+                // 标记玩家列表已由player_info初始化
+                playersList.setAttribute('data-initialized-by-player-info', 'true');
             }
         }
 
@@ -1074,30 +1118,15 @@
                 `;
             }
 
-            // 更新角色信息
-            const roleInfo = document.getElementById('my-role-info');
-            if (roleInfo && currentPlayer) {
-                roleInfo.innerHTML = `
-                    <div class="self-info">
-                        <p><strong>角色:</strong> ${currentPlayer.role || "未知"}</p>
-                        <p><strong>阵营:</strong> ${currentPlayer.team_display || "未知"}</p>
-                    </div>
-                `;
-            }
-
-            // 更新玩家列表
+            // 更新玩家列表 - 只显示游戏状态信息，不包含角色信息
             const playersList = document.getElementById('players-list');
-            if (playersList) {
+            if (playersList && !playersList.hasAttribute('data-initialized-by-player-info')) {
                 playersList.innerHTML = gameState.players.map(player => `
                     <div class="player-card ${player.is_leader ? 'leader' : ''} 
                                       ${player.name === playerName ? 'self' : ''} 
                                       ${gameState.current_quest.team.some(p => p.name === player.name) ? 'selected-team' : ''}">
                         <span class="player-number">#${player.player_number}</span>
                         <div class="player-name">${player.name}</div>
-                        ${player.name === playerName ? `
-                            <div class="player-role">${player.role}</div>
-                            <div class="player-team">${player.team_display}</div>
-                        ` : ''}
                         ${player.is_leader ? '<div class="leader-badge">队长</div>' : ''}
                         ${gameState.current_quest.team.some(p => p.name === player.name) ? 
                             '<div class="team-badge">任务队员</div>' : ''}

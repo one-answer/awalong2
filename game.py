@@ -957,26 +957,28 @@ class Game:
                     'team_display': other.team.display_name
                 })
                 print(f"[DEBUG] Self info for {player_name}: {info}")
-
-            # 根据角色规则显示其他玩家信息
-            elif player.role == Role.MORDRED_MINION:
-                # 莫德雷德的爪牙可以看到其他邪恶角色（除了幻形妖）
-                if other.team == Team.EVIL and other.role != Role.SHAPESHIFTER:
-                    info['team'] = Team.EVIL.value
-                    info['team_display'] = Team.EVIL.display_name
             
+            # 根据角色规则显示其他玩家信息
             elif player.role == Role.MORGAN:
-                # 摩根勒菲可以看到其他邪恶角色（除了幻形妖）
+                # 摩根勒菲知道所有邪恶方的身份，除了幻形妖
                 if other.team == Team.EVIL and other.role != Role.SHAPESHIFTER:
                     info['team'] = Team.EVIL.value
                     info['team_display'] = Team.EVIL.display_name
+                    info['role'] = other.role.display_name  # 摩根勒菲知道其他邪恶方的具体角色
+            
+            elif player.role == Role.MORDRED_MINION:
+                # 莫德雷德的爪牙可以看到摩根勒菲和王储，不知道幻形妖
+                if other.role == Role.MORGAN or other.role == Role.PRINCE:
+                    info['team'] = Team.EVIL.value
+                    info['team_display'] = Team.EVIL.display_name
+                    info['role'] = other.role.display_name  # 莫德雷德爪牙知道角色
             
             elif player.role == Role.PRINCE:
-                # 王儲不知道谁是邪恶角色
+                # 王储不知道谁是邪恶方
                 pass
 
             elif player.role == Role.SHAPESHIFTER:
-                # 幻形妖不知道谁是邪恶角色
+                # 幻形妖不知道谁是邪恶方
                 pass
 
             visible_info.append(info)
