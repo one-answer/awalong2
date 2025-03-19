@@ -7,262 +7,539 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            background-image: url('https://img.freepik.com/free-vector/hand-painted-watercolor-fantasy-background_23-2149012322.jpg?w=1380&t=st=1715642564~exp=1715643164~hmac=04e1f6d41dfee5d80d48108fa44339ba75e2e82a0fde1b35a6eb62cd1ac6b2fc');
+            background-size: cover;
+            background-attachment: fixed;
+            color: #333;
+            line-height: 1.6;
+        }
         .game-container {
-            max-width: 800px;
-            margin: 0 auto;
+            max-width: 900px;
+            margin: 30px auto;
             padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-        .room-code {
-            font-size: 24px;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .player-item {
-            padding: 8px;
-            margin: 4px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .current-player {
-            background-color: #e9ecef;
-        }
-        .player-number {
-            font-weight: bold;
-            margin-right: 8px;
-            display: inline-block;
-            background-color: #007bff;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
+        h1.main-title {
+            color: #2e4172;
+            font-size: 3rem;
+            font-weight: 700;
             text-align: center;
-            line-height: 24px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+            font-family: 'Times New Roman', Times, serif;
         }
-        #team-selection {
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .room-header {
-            margin-bottom: 20px;
-        }
-        .room-code {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .players-list {
-            margin: 20px 0;
-        }
-        .player-item {
-            padding: 5px 0;
-        }
-        .player-item.host {
-            color: #007bff;
-            font-weight: bold;
-        }
-        .host-controls {
-            margin-top: 20px;
-        }
-        .start-button {
-            padding: 10px 20px;
-            font-size: 1.1em;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .start-button:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
-        .waiting-message {
+        .title-subtitle {
+            text-align: center;
             color: #6c757d;
             font-style: italic;
+            margin-top: -20px;
+            margin-bottom: 30px;
         }
-        .form-group {
-            margin-bottom: 15px;
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            overflow: hidden;
+            margin-bottom: 30px;
         }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        .form-control {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .card-title {
+            color: #2e4172;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        .card-body {
+            padding: 25px;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 10px 15px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-size: 1rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
         }
         .btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
             cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        .btn:hover::after {
+            animation: ripple 1s ease-out;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
         }
         .btn-primary {
-            background-color: #007bff;
+            background-color: #3266c1;
             color: white;
         }
         .btn-primary:hover {
-            background-color: #0056b3;
+            background-color: #274d94;
+            transform: translateY(-2px);
         }
-        #room-code {
+        .btn-success {
+            background-color: #38b000;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #2d8c00;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #bb2d3b;
+            transform: translateY(-2px);
+        }
+        #main-menu {
+            text-align: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+        }
+        #main-menu .card-body {
+            padding: 40px;
+        }
+        #main-menu .btn {
+            min-width: 180px;
+            margin: 10px;
+            font-size: 1.1rem;
+            padding: 12px 24px;
+        }
+        #create-view, #join-view {
+            background: white;
+        }
+        .room-header {
+            margin-bottom: 30px;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .room-code {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3266c1;
+            letter-spacing: 3px;
+            margin: 15px 0;
+            display: block;
+            text-align: center;
             text-transform: uppercase;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .team-selection {
+        .player-count {
+            font-size: 1.2rem;
+            color: #6c757d;
             margin-top: 10px;
         }
-        .action-button {
-            padding: 10px 20px;
-            background-color: #007bff;
+        .players-list {
+            margin: 30px 0;
+        }
+        .players-list h3 {
+            color: #2e4172;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .player-item {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3266c1;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        .player-item:hover {
+            transform: translateX(5px);
+            background-color: #e9ecef;
+        }
+        .player-item.host {
+            border-left-color: #38b000;
+            font-weight: 600;
+        }
+        .player-number {
+            font-weight: 700;
+            margin-right: 12px;
+            display: inline-block;
+            background-color: #3266c1;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .host-controls {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .start-button {
+            min-width: 200px;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            background-color: #38b000;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .action-button:disabled {
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+            background-color: #2d8c00;
+        }
+        .start-button:disabled {
             background-color: #6c757d;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
-        .leader-controls {
+        .waiting-message {
+            color: #6c757d;
+            font-style: italic;
+            text-align: center;
             margin: 20px 0;
             padding: 15px;
             background-color: #f8f9fa;
-            border-radius: 5px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
         }
-        .quest-vote-controls {
-            margin: 20px 0;
+        /* Game View Styles */
+        #game-view {
+            background: white;
+        }
+        #game-view .card-body {
+            padding: 0;
+        }
+        .game-header {
+            background: linear-gradient(135deg, #2e4172 0%, #192640 100%);
+            color: white;
             padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+            border-radius: 12px 12px 0 0;
             text-align: center;
+        }
+        .game-header h2 {
+            margin-bottom: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .game-header p {
+            margin: 5px 0;
+            font-size: 1.1rem;
+        }
+        .game-content {
+            padding: 25px;
+        }
+        .role-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3266c1;
+        }
+        .role-info .self-info {
+            font-size: 1.1rem;
+        }
+        .role-info p {
+            margin: 8px 0;
+        }
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .player-card {
+            position: relative;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+        .player-card.leader {
+            border: 2px solid #ffc107;
+        }
+        .player-card.self {
+            border: 2px solid #3266c1;
+        }
+        .player-card.selected-team {
+            border: 2px solid #38b000;
+        }
+        .player-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 10px 0;
+        }
+        .player-role, .player-team {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .leader-badge, .team-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #ffc107;
+            color: #212529;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .team-badge {
+            background-color: #38b000;
+            color: white;
+            top: auto;
+            bottom: -10px;
+        }
+        .quest-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .quest-status div {
+            margin: 8px 0;
+            font-size: 1rem;
+        }
+        .leader-controls, .quest-vote-controls, .next-leader-selection {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+        .team-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .form-check {
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .form-check:hover {
+            transform: scale(1.03);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        .form-check input {
+            margin-right: 10px;
         }
         .vote-buttons {
             display: flex;
             justify-content: center;
             gap: 20px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
         .success-button, .fail-button {
+            min-width: 150px;
             padding: 15px 30px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 1.1em;
-            transition: transform 0.1s;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .success-button {
-            background-color: #28a745;
+            background-color: #38b000;
             color: white;
+        }
+        .success-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            background-color: #2d8c00;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
         }
         .fail-button {
             background-color: #dc3545;
             color: white;
         }
-        .success-button:hover, .fail-button:hover {
-            transform: scale(1.05);
-        }
-        .waiting-message {
-            text-align: center;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-        .next-leader-selection {
-            margin: 20px 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+        .fail-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            background-color: #bb2d3b;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
         }
         .select-leader-button {
             padding: 8px 16px;
-            background-color: #007bff;
+            background-color: #3266c1;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             margin-top: 10px;
-            transition: background-color 0.2s;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .select-leader-button:hover {
-            background-color: #0056b3;
-        }
-        .selected-team {
-            border: 2px solid #28a745;
-        }
-        .team-badge {
-            position: absolute;
-            bottom: -10px;
-            right: -10px;
-            background-color: #28a745;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8em;
+            background-color: #274d94;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
         }
         .game-over {
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             margin: 20px 0;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+            border-radius: 8px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
         }
         .winner-announcement {
-            font-size: 1.5em;
-            font-weight: bold;
+            font-size: 2rem;
+            font-weight: 700;
             margin: 20px 0;
+            color: #2e4172;
         }
         .final-results {
             margin: 20px 0;
+            font-size: 1.2rem;
         }
         .new-game-button {
-            padding: 10px 20px;
-            background-color: #007bff;
+            min-width: 200px;
+            padding: 12px 25px;
+            background-color: #3266c1;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .new-game-button:hover {
+            transform: translateY(-3px);
+            background-color: #274d94;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1 class="text-center mb-4">阿瓦隆Quest</h1>
+        <h1 class="main-title">阿瓦隆传奇</h1>
+        <p class="title-subtitle">亚瑟王的骑士们，正义与邪恶的终极对决</p>
         
         <!-- 主菜单 -->
         <div id="main-menu" class="card mb-4">
             <div class="card-body text-center">
-                <h5 class="card-title">选择操作</h5>
-                <button class="btn btn-primary m-2" onclick="showCreateRoom()">创建房间</button>
-                <button class="btn btn-success m-2" onclick="showJoinRoom()">加入房间</button>
+                <h5 class="card-title">欢迎来到阿瓦隆游戏</h5>
+                <p class="mb-4">探索正义与邪恶的史诗对决，展开你的冒险吧！</p>
+                <div class="d-flex justify-content-center flex-wrap">
+                    <button class="btn btn-primary m-2" onclick="showCreateRoom()">创建房间</button>
+                    <button class="btn btn-success m-2" onclick="showJoinRoom()">加入房间</button>
+                </div>
             </div>
         </div>
 
         <!-- 创建房间 -->
         <div id="create-view" class="card mb-4" style="display: none;">
             <div class="card-body">
-                <h5 class="card-title">创建房间</h5>
-                <div class="mb-3">
-                    <label for="create-player-name" class="form-label">玩家名称</label>
-                    <input type="text" class="form-control" id="create-player-name">
+                <h5 class="card-title">创建新房间</h5>
+                <p class="text-muted mb-4">创建一个新的游戏房间，邀请你的朋友加入吧！</p>
+                <div class="mb-4">
+                    <label for="create-player-name" class="form-label">你的名称</label>
+                    <input type="text" class="form-control" id="create-player-name" placeholder="输入你的游戏名称">
                 </div>
-                <div class="mb-3">
-                    <label for="player-count" class="form-label">玩家数量</label>
+                <div class="mb-4">
+                    <label for="player-count" class="form-label">选择玩家数量</label>
                     <select class="form-select" id="player-count">
-                        <option value="5">5人</option>
-                        <option value="6">6人</option>
-                        <option value="7">7人</option>
-                        <option value="8">8人</option>
-                        <option value="9">9人</option>
-                        <option value="10">10人</option>
+                        <option value="5">5人游戏</option>
+                        <option value="6">6人游戏</option>
+                        <option value="7">7人游戏</option>
+                        <option value="8">8人游戏</option>
+                        <option value="9">9人游戏</option>
+                        <option value="10">10人游戏</option>
                     </select>
                 </div>
-                <button class="btn btn-primary" onclick="createRoom()">创建房间</button>
-                <button class="btn btn-secondary" onclick="showMainMenu()">返回</button>
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-secondary" onclick="showMainMenu()">返回</button>
+                    <button class="btn btn-primary" onclick="createRoom()">创建房间</button>
+                </div>
             </div>
         </div>
 
@@ -270,62 +547,72 @@
         <div id="join-view" class="card mb-4" style="display: none;">
             <div class="card-body">
                 <h5 class="card-title">加入房间</h5>
-                <div class="form-group">
-                    <label for="join-player-name">玩家名称:</label>
-                    <input type="text" id="join-player-name" class="form-control" required>
+                <p class="text-muted mb-4">输入房间代码和你的名称加入已有的游戏</p>
+                <div class="mb-4">
+                    <label for="join-player-name" class="form-label">你的名称</label>
+                    <input type="text" id="join-player-name" class="form-control" placeholder="输入你的游戏名称" required>
                 </div>
-                <div class="form-group">
-                    <label for="join-room-code">房间代码:</label>
-                    <input type="text" id="join-room-code" class="form-control" maxlength="4" required>
+                <div class="mb-4">
+                    <label for="join-room-code" class="form-label">房间代码</label>
+                    <input type="text" id="join-room-code" class="form-control" maxlength="4" placeholder="输入4位房间代码" required>
                 </div>
-                <button onclick="joinRoom()" class="btn btn-primary">加入房间</button>
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-secondary" onclick="showMainMenu()">返回</button>
+                    <button onclick="joinRoom()" class="btn btn-success">加入房间</button>
+                </div>
             </div>
         </div>
 
         <!-- 房间界面 -->
         <div id="room-view" class="card mb-4" style="display: none;">
             <div class="card-body">
-                <h5 class="card-title">房间信息</h5>
+                <h5 class="card-title text-center">游戏房间</h5>
                 <div id="room-info"></div>
-                <button class="btn btn-danger mt-3" onclick="leaveRoom()">离开房间</button>
+                <div class="text-center">
+                    <button class="btn btn-danger mt-3" onclick="leaveRoom()">离开房间</button>
+                </div>
             </div>
         </div>
 
         <!-- 游戏界面 -->
         <div id="game-view" class="card mb-4" style="display: none;">
-            <div class="card-body">
-                <h5 class="card-title">游戏状态</h5>
-                
+            <div class="game-header">
+                <h2>阿瓦隆传奇</h2>
+                <div id="game-status-header"></div>
+            </div>
+            <div class="game-content">
                 <!-- 个人角色信息 -->
                 <div class="mb-4">
-                    <h6>你的角色信息</h6>
+                    <h6 class="fw-bold mb-3">你的角色信息</h6>
                     <div id="my-role-info" class="role-info"></div>
                 </div>
 
                 <!-- 玩家列表 -->
                 <div class="mb-4">
-                    <h6>玩家信息</h6>
+                    <h6 class="fw-bold mb-3">玩家信息</h6>
                     <div id="players-list" class="players-grid"></div>
                 </div>
 
                 <!-- 任务信息 -->
                 <div class="mb-4">
-                    <h6>任务信息</h6>
+                    <h6 class="fw-bold mb-3">任务信息</h6>
                     <div id="quest-info" class="quest-info"></div>
                 </div>
 
                 <!-- 领袖选择界面 -->
                 <div id="leader-controls" class="mb-4" style="display: none;">
-                    <h6>选择任务队员</h6>
+                    <h6 class="fw-bold mb-3">选择任务队员</h6>
                     <div id="team-selection"></div>
-                    <button class="btn btn-primary mt-2" onclick="submitTeam()" id="submit-team-btn" disabled>
-                        确认队员
-                    </button>
+                    <div class="text-center">
+                        <button class="btn btn-primary mt-3" onclick="submitTeam()" id="submit-team-btn" disabled>
+                            确认队员
+                        </button>
+                    </div>
                 </div>
 
                 <!-- 添加任务投票界面 -->
                 <div id="quest-vote-controls" style="display: none;">
-                    <h3>任务投票</h3>
+                    <h3 class="fw-bold mb-3">任务投票</h3>
                     <p>你是本次任务的队员，请选择任务结果：</p>
                     <div class="vote-buttons">
                         <button onclick="submitQuestVote(true)" class="success-button">
@@ -339,7 +626,7 @@
 
                 <!-- 添加选择下一任队长界面 -->
                 <div id="next-leader-selection" style="display: none;">
-                    <h3>选择下一任队长</h3>
+                    <h3 class="fw-bold mb-3">选择下一任队长</h3>
                     <div class="players-grid">
                         ${gameState.players.map(player => `
                             ${player.name !== playerName ? `
@@ -548,20 +835,22 @@
 
             roomInfoDiv.innerHTML = `
                 <div class="room-header">
-                    <h2>房间信息</h2>
-                    <p class="room-code">房间代码: ${roomInfo.code}</p>
-                    <p class="player-count">玩家数量: ${roomInfo.players.length}/${roomInfo.player_count}</p>
+                    <h2 class="text-center">游戏房间</h2>
+                    <div class="room-code">${roomInfo.code}</div>
+                    <p class="player-count text-center">玩家数量: ${roomInfo.players.length}/${roomInfo.player_count}</p>
                 </div>
                 <div class="players-list">
-                    <h3>玩家列表:</h3>
-                    <ul>
+                    <h3 class="text-center mb-4">玩家列表</h3>
+                    <div class="player-cards">
                         ${roomInfo.players.map(player => `
-                            <li class="player-item ${player.is_host ? 'host' : ''}">
+                            <div class="player-item ${player.is_host ? 'host' : ''}">
                                 <span class="player-number">#${player.player_number}</span>
-                                ${player.name} ${player.is_host ? '(房主)' : ''}
-                            </li>
+                                <span class="player-name">${player.name}</span>
+                                ${player.is_host ? '<span class="badge bg-primary ms-2">房主</span>' : ''}
+                                ${player.name === playerName ? '<span class="badge bg-success ms-2">你</span>' : ''}
+                            </div>
                         `).join('')}
-                    </ul>
+                    </div>
                 </div>
                 ${isCurrentPlayerHost ? `
                     <div class="host-controls">
@@ -573,10 +862,12 @@
                             开始游戏
                         </button>
                         ${roomInfo.players.length === roomInfo.player_count ? '' : 
-                            `<p class="waiting-message">等待玩家加入 (${roomInfo.players.length}/${roomInfo.player_count})</p>`}
+                            `<p class="waiting-message mt-3">等待玩家加入 (${roomInfo.players.length}/${roomInfo.player_count})</p>`}
                     </div>
                 ` : `
-                    <p class="waiting-message">等待房主开始游戏...</p>
+                    <div class="waiting-message">
+                        <p>等待房主开始游戏...</p>
+                    </div>
                 `}
             `;
 
@@ -765,170 +1056,229 @@
             const isLeader = gameState.current_leader === playerName;
             const isInTeam = gameState.current_quest.team.some(p => p.name === playerName);
 
-            gameView.innerHTML = `
-                <div class="game-container">
-                    <div class="game-header">
-                        <h2>游戏进行中</h2>
-                        <p>当前任务: ${gameState.quest_number}</p>
-                        <p>当前阶段: ${gameState.current_phase}</p>
-                        <p>当前队长: ${gameState.current_leader}</p>
-                        <p>需要选择 ${gameState.current_quest.required_players} 名玩家</p>
+            // 更新游戏状态头部
+            const gameStatusHeader = document.getElementById('game-status-header');
+            if (gameStatusHeader) {
+                gameStatusHeader.innerHTML = `
+                    <p>当前任务: <span class="badge bg-primary">${gameState.quest_number}</span></p>
+                    <p>当前阶段: <span class="badge bg-info">${gameState.current_phase}</span></p>
+                    <p>当前队长: <span class="badge bg-warning text-dark">${gameState.current_leader}</span></p>
+                    <p>需要选择 <span class="badge bg-success">${gameState.current_quest.required_players}</span> 名玩家</p>
+                `;
+            }
+
+            // 更新角色信息
+            const roleInfo = document.getElementById('my-role-info');
+            if (roleInfo && currentPlayer) {
+                roleInfo.innerHTML = `
+                    <div class="self-info">
+                        <p><strong>角色:</strong> ${currentPlayer.role || "未知"}</p>
+                        <p><strong>阵营:</strong> ${currentPlayer.team_display || "未知"}</p>
                     </div>
-                    
-                    <div class="players-status">
-                        <h3>玩家列表:</h3>
-                        <div class="players-grid">
-                            ${gameState.players.map(player => `
-                                <div class="player-card ${player.is_leader ? 'leader' : ''} 
-                                                  ${player.name === playerName ? 'self' : ''} 
-                                                  ${gameState.current_quest.team.some(p => p.name === player.name) ? 'selected-team' : ''}">
+                `;
+            }
+
+            // 更新玩家列表
+            const playersList = document.getElementById('players-list');
+            if (playersList) {
+                playersList.innerHTML = gameState.players.map(player => `
+                    <div class="player-card ${player.is_leader ? 'leader' : ''} 
+                                      ${player.name === playerName ? 'self' : ''} 
+                                      ${gameState.current_quest.team.some(p => p.name === player.name) ? 'selected-team' : ''}">
+                        <span class="player-number">#${player.player_number}</span>
+                        <div class="player-name">${player.name}</div>
+                        ${player.name === playerName ? `
+                            <div class="player-role">${player.role}</div>
+                            <div class="player-team">${player.team_display}</div>
+                        ` : ''}
+                        ${player.is_leader ? '<div class="leader-badge">队长</div>' : ''}
+                        ${gameState.current_quest.team.some(p => p.name === player.name) ? 
+                            '<div class="team-badge">任务队员</div>' : ''}
+                    </div>
+                `).join('');
+            }
+
+            // 更新任务信息
+            const questInfo = document.getElementById('quest-info');
+            if (questInfo) {
+                questInfo.innerHTML = `
+                    <div class="quest-status">
+                        <div><strong>当前任务：</strong> 第 ${gameState.quest_number} 轮</div>
+                        <div><strong>需要队员：</strong> ${gameState.current_quest.required_players} 人</div>
+                        <div><strong>任务结果：</strong> 
+                            ${gameState.quest_results.length > 0 ? 
+                              gameState.quest_results.map((result, i) => 
+                                `<span class="badge ${result ? 'bg-success' : 'bg-danger'}">第${i + 1}轮: ${result ? '成功' : '失败'}</span>`
+                              ).join(' ') 
+                              : '无'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 更新队长控制区域
+            const leaderControls = document.getElementById('leader-controls');
+            if (leaderControls) {
+                leaderControls.style.display = isLeader && gameState.current_phase === 'LEADER_TURN' ? 'block' : 'none';
+                if (isLeader && gameState.current_phase === 'LEADER_TURN') {
+                    const teamSelection = document.getElementById('team-selection');
+                    if (teamSelection) {
+                        teamSelection.innerHTML = gameState.players.map(player => `
+                            <div class="form-check">
+                                <input type="checkbox" 
+                                       id="select-${player.name}" 
+                                       value="${player.name}"
+                                       onchange="handleTeamSelection('${player.name}')"
+                                       ${selectedTeam.has(player.name) ? 'checked' : ''}>
+                                <label for="select-${player.name}">
+                                    <span class="player-number">#${player.player_number}</span>
+                                    ${player.name}
+                                </label>
+                            </div>
+                        `).join('');
+                    }
+                }
+            }
+
+            // 更新任务投票区域
+            const questVoteControls = document.getElementById('quest-vote-controls');
+            if (questVoteControls) {
+                if (gameState.current_phase === 'QUEST_VOTE' && isInTeam) {
+                    questVoteControls.style.display = 'block';
+                    // 邪恶阵营可以投失败票
+                    const voteButtons = questVoteControls.querySelector('.vote-buttons');
+                    if (voteButtons && currentPlayer.team === 'EVIL') {
+                        voteButtons.innerHTML = `
+                            <button onclick="submitQuestVote(true)" class="success-button">
+                                成功
+                            </button>
+                            <button onclick="submitQuestVote(false)" class="fail-button">
+                                失败
+                            </button>
+                        `;
+                    } else if (voteButtons) {
+                        // 正义阵营只能投成功票
+                        voteButtons.innerHTML = `
+                            <button onclick="submitQuestVote(true)" class="success-button">
+                                成功
+                            </button>
+                        `;
+                    }
+                } else {
+                    questVoteControls.style.display = 'none';
+                }
+            }
+
+            // 如果不是在投票，但是当前阶段是投票阶段，显示等待信息
+            if (gameState.current_phase === 'QUEST_VOTE' && !isInTeam) {
+                // 添加一个等待消息到game-content
+                const gameContent = document.querySelector('.game-content');
+                if (gameContent) {
+                    // 检查是否已经有等待消息
+                    let waitingMessage = document.getElementById('waiting-message');
+                    if (!waitingMessage) {
+                        waitingMessage = document.createElement('div');
+                        waitingMessage.id = 'waiting-message';
+                        waitingMessage.className = 'waiting-message';
+                        gameContent.appendChild(waitingMessage);
+                    }
+                    waitingMessage.innerHTML = `
+                        <p>等待任务队员进行投票...</p>
+                        <p>当前任务队员：${gameState.current_quest.team.map(p => p.name).join(', ')}</p>
+                    `;
+                }
+            } else {
+                // 移除等待消息
+                const waitingMessage = document.getElementById('waiting-message');
+                if (waitingMessage) {
+                    waitingMessage.remove();
+                }
+            }
+
+            // 更新选择下一任队长区域
+            const nextLeaderSelection = document.getElementById('next-leader-selection');
+            if (nextLeaderSelection) {
+                if (gameState.current_phase === 'SELECT_NEXT_LEADER' && isLeader) {
+                    nextLeaderSelection.style.display = 'block';
+                    const playersGrid = nextLeaderSelection.querySelector('.players-grid');
+                    if (playersGrid) {
+                        playersGrid.innerHTML = gameState.players.map(player => `
+                            ${player.name !== playerName ? `
+                                <div class="player-card">
                                     <span class="player-number">#${player.player_number}</span>
                                     <div class="player-name">${player.name}</div>
-                                    ${player.name === playerName ? `
-                                        <div class="player-role">${player.role}</div>
-                                        <div class="player-team">${player.team_display}</div>
-                                    ` : ''}
-                                    ${player.is_leader ? '<div class="leader-badge">队长</div>' : ''}
-                                    ${gameState.current_quest.team.some(p => p.name === player.name) ? 
-                                        '<div class="team-badge">任务队员</div>' : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    ${isLeader && gameState.current_phase === 'LEADER_TURN' ? `
-                        <div class="leader-controls">
-                            <h3>选择任务队员</h3>
-                            <div class="team-selection">
-                                ${gameState.players.map(player => `
-                                    <div class="form-check">
-                                        <input type="checkbox" 
-                                               id="select-${player.name}" 
-                                               value="${player.name}"
-                                               onchange="handleTeamSelection('${player.name}')"
-                                               ${selectedTeam.has(player.name) ? 'checked' : ''}>
-                                        <label for="select-${player.name}">
-                                            <span class="player-number">#${player.player_number}</span>
-                                            ${player.name}
-                                        </label>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <button onclick="submitTeam()" 
-                                    id="submit-team-button" 
-                                    disabled
-                                    class="action-button">
-                                确认队伍
-                            </button>
-                        </div>
-                    ` : ''}
-
-                    ${gameState.current_phase === 'QUEST_VOTE' && isInTeam ? `
-                        <div class="quest-vote-controls">
-                            <h3>任务投票</h3>
-                            <p>你是本次任务的队员，请选择任务结果：</p>
-                            <div class="vote-buttons">
-                                <button onclick="submitQuestVote(true)" class="success-button">
-                                    成功
-                                </button>
-                                ${currentPlayer.team === 'EVIL' ? `
-                                    <button onclick="submitQuestVote(false)" class="fail-button">
-                                        失败
+                                    <button onclick="selectNextLeader('${player.name}')" 
+                                            class="select-leader-button">
+                                        选为队长
                                     </button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    ` : gameState.current_phase === 'QUEST_VOTE' ? `
-                        <div class="waiting-message">
-                            <p>等待任务队员进行投票...</p>
-                            <p>当前任务队员：${gameState.current_quest.team.map(p => p.name).join(', ')}</p>
-                        </div>
-                    ` : ''}
+                                </div>
+                            ` : ''}
+                        `).join('');
+                    }
+                } else {
+                    nextLeaderSelection.style.display = 'none';
+                }
+            }
 
-                    ${gameState.current_phase === 'SELECT_NEXT_LEADER' && isLeader ? `
-                        <div class="next-leader-selection">
-                            <h3>选择下一任队长</h3>
-                            <div class="players-grid">
-                                ${gameState.players.map(player => `
-                                    ${player.name !== playerName ? `
-                                        <div class="player-card">
-                                            <span class="player-number">#${player.player_number}</span>
-                                            <div class="player-name">${player.name}</div>
-                                            <button onclick="selectNextLeader('${player.name}')" 
-                                                    class="select-leader-button">
-                                                选为队长
-                                            </button>
-                                        </div>
-                                    ` : ''}
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : gameState.current_phase === 'SELECT_NEXT_LEADER' ? `
-                        <div class="waiting-message">
-                            <p>等待当前队长 ${gameState.current_leader} 选择下一任队长...</p>
-                        </div>
-                    ` : ''}
+            // 如果不是在选择下一任队长，但是当前阶段是选择下一任队长，显示等待信息
+            if (gameState.current_phase === 'SELECT_NEXT_LEADER' && !isLeader) {
+                // 添加一个等待消息到game-content
+                const gameContent = document.querySelector('.game-content');
+                if (gameContent) {
+                    // 检查是否已经有等待消息
+                    let waitingMessage = document.getElementById('waiting-next-leader');
+                    if (!waitingMessage) {
+                        waitingMessage = document.createElement('div');
+                        waitingMessage.id = 'waiting-next-leader';
+                        waitingMessage.className = 'waiting-message';
+                        gameContent.appendChild(waitingMessage);
+                    }
+                    waitingMessage.innerHTML = `
+                        <p>等待当前队长 ${gameState.current_leader} 选择下一任队长...</p>
+                    `;
+                }
+            } else {
+                // 移除等待消息
+                const waitingMessage = document.getElementById('waiting-next-leader');
+                if (waitingMessage) {
+                    waitingMessage.remove();
+                }
+            }
 
-                    ${gameState.current_phase === 'GAME_OVER' ? `
-                        <div class="game-over">
-                            <h2>游戏结束</h2>
-                            <p class="winner-announcement">
-                                ${gameState.successful_quests >= 3 ? '正义阵营' : '邪恶阵营'}获胜！
-                            </p>
-                            <div class="final-results">
-                                <p>任务成功: ${gameState.successful_quests || 0}</p>
-                                <p>任务失败: ${gameState.failed_quests || 0}</p>
-                            </div>
-                            <button onclick="location.reload()" class="new-game-button">
-                                开始新游戏
-                            </button>
+            // 添加游戏结束状态
+            if (gameState.current_phase === 'GAME_OVER') {
+                // 添加一个游戏结束消息到game-content
+                const gameContent = document.querySelector('.game-content');
+                if (gameContent) {
+                    // 检查是否已经有游戏结束消息
+                    let gameOverMsg = document.getElementById('game-over-msg');
+                    if (!gameOverMsg) {
+                        gameOverMsg = document.createElement('div');
+                        gameOverMsg.id = 'game-over-msg';
+                        gameOverMsg.className = 'game-over';
+                        gameContent.appendChild(gameOverMsg);
+                    }
+                    gameOverMsg.innerHTML = `
+                        <h2>游戏结束</h2>
+                        <p class="winner-announcement">
+                            ${gameState.successful_quests >= 3 ? '正义阵营' : '邪恶阵营'}获胜！
+                        </p>
+                        <div class="final-results">
+                            <p>任务成功: ${gameState.successful_quests || 0}</p>
+                            <p>任务失败: ${gameState.failed_quests || 0}</p>
                         </div>
-                    ` : ''}
-                </div>
-            `;
-
-            // 添加新的样式
-            const additionalStyles = `
-                .selected-team {
-                    border: 2px solid #28a745;
+                        <button onclick="location.reload()" class="new-game-button">
+                            开始新游戏
+                        </button>
+                    `;
                 }
-                .team-badge {
-                    position: absolute;
-                    bottom: -10px;
-                    right: -10px;
-                    background-color: #28a745;
-                    color: white;
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    font-size: 0.8em;
+            } else {
+                // 移除游戏结束消息
+                const gameOverMsg = document.getElementById('game-over-msg');
+                if (gameOverMsg) {
+                    gameOverMsg.remove();
                 }
-                .game-over {
-                    text-align: center;
-                    padding: 20px;
-                    margin: 20px 0;
-                    background-color: #f8f9fa;
-                    border-radius: 5px;
-                }
-                .winner-announcement {
-                    font-size: 1.5em;
-                    font-weight: bold;
-                    margin: 20px 0;
-                }
-                .final-results {
-                    margin: 20px 0;
-                }
-                .new-game-button {
-                    padding: 10px 20px;
-                    background-color: #007bff;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                }
-            `;
-            const style = document.createElement('style');
-            style.textContent = additionalStyles;
-            document.head.appendChild(style);
+            }
         }
 
         // 添加队伍选择相关函数
