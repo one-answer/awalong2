@@ -198,6 +198,7 @@ class FinalQuest:
     def _get_required_players(self, player_count: int) -> int:
         """获取最终任务需要的队员数量"""
         requirements = {
+            4: 3,  # 4人游戏最终任务需要3人
             5: 3, 6: 4, 7: 4, 8: 5, 9: 5, 10: 5
         }
         return requirements[player_count]
@@ -296,7 +297,25 @@ class Game:
         self.player_count = player_count
         self.current_leader_index = 0
         self.quest_number = 1
-        self.quest_requirements = [2, 3, 2, 3, 3]  # 每个任务需要的玩家数
+        
+        # 设置任务需求玩家数
+        if self.player_count == 4:
+            self.quest_requirements = [2, 3, 2, 3, 3]
+        elif self.player_count == 5:
+            self.quest_requirements = [2, 3, 2, 3, 3]
+        elif self.player_count == 6:
+            self.quest_requirements = [2, 3, 4, 3, 4]
+        elif self.player_count == 7:
+            self.quest_requirements = [2, 3, 3, 4, 4]
+        elif self.player_count == 8:
+            self.quest_requirements = [3, 4, 4, 5, 5]
+        elif self.player_count == 9:
+            self.quest_requirements = [3, 4, 4, 5, 5]
+        elif self.player_count == 10:
+            self.quest_requirements = [3, 4, 4, 5, 5]
+        else:
+            raise ValueError(f"不支持 {self.player_count} 人游戏")
+            
         self.current_quest = Quest(self.quest_number, self.quest_requirements[0])
         self.quest_results = []
         self.successful_quests = 0
@@ -304,48 +323,20 @@ class Game:
         self.current_phase = GamePhase.LEADER_TURN
         self.winner = None
         
-        # 分配角色
-        self.assign_roles()
+        # 设置角色
+        self.setup_roles()
 
     def assign_roles(self):
-        """分配角色给玩家"""
-        # 根据玩家数量确定角色配置
-        if self.player_count == 5:
-            roles = [
-                Role.LOYAL_SERVANT,
-                Role.DUKE,
-                Role.GRAND_DUKE,
-                Role.MORGAN,
-                Role.PRINCE
-            ]
-        else:
-            raise ValueError(f"不支持 {self.player_count} 人游戏")
-
-        # 随机打乱角色顺序
-        random.shuffle(roles)
-        
-        # 分配角色给玩家
-        for player, role in zip(self.players, roles):
-            player.role = role
-            player.team = role.team
-            print(f"[DEBUG] Assigned {role.display_name} to {player.name}")
-
-    def get_current_leader(self):
-        """获取当前队长"""
-        return self.players[self.current_leader_index]
-
-    def prepare_next_quest(self):
-        """准备下一轮任务"""
-        self.quest_number += 1
-        self.current_quest = Quest(self.quest_number, self.quest_requirements[self.quest_number - 1])
-        self.current_leader_index = (self.current_leader_index + 1) % len(self.players)
-        self.current_phase = GamePhase.LEADER_TURN
+        """已弃用，使用setup_roles代替"""
+        raise DeprecationWarning("此方法已弃用，请使用setup_roles代替")
 
     def setup_roles(self):
         """设置玩家角色"""
         print("[DEBUG] Setting up roles...")
         # 根据玩家数量确定角色配置
         role_config = {
+            4: [Role.LOYAL_SERVANT, Role.LOYAL_SERVANT, 
+                Role.MORGAN, Role.PRINCE],
             5: [Role.LOYAL_SERVANT, Role.LOYAL_SERVANT, Role.LOYAL_SERVANT, 
                 Role.MORGAN, Role.PRINCE],
             6: [Role.LOYAL_SERVANT, Role.LOYAL_SERVANT, Role.LOYAL_SERVANT, 
@@ -369,6 +360,17 @@ class Game:
             player.role = role
             player.team = role.team
             print(f"[DEBUG] Player {player.name} got role: {role.display_name} ({role.team.display_name})")
+
+    def get_current_leader(self):
+        """获取当前队长"""
+        return self.players[self.current_leader_index]
+
+    def prepare_next_quest(self):
+        """准备下一轮任务"""
+        self.quest_number += 1
+        self.current_quest = Quest(self.quest_number, self.quest_requirements[self.quest_number - 1])
+        self.current_leader_index = (self.current_leader_index + 1) % len(self.players)
+        self.current_phase = GamePhase.LEADER_TURN
 
     def add_player(self, player: Player):
         """添加玩家"""
