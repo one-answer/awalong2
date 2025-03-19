@@ -522,10 +522,6 @@
                 <h5 class="card-title">创建新房间</h5>
                 <p class="text-muted mb-4">创建一个新的游戏房间，邀请你的朋友加入吧！</p>
                 <div class="mb-4">
-                    <label for="create-player-name" class="form-label">你的名称</label>
-                    <input type="text" class="form-control" id="create-player-name" placeholder="输入你的游戏名称">
-                </div>
-                <div class="mb-4">
                     <label for="player-count" class="form-label">选择玩家数量</label>
                     <select class="form-select" id="player-count">
                         <option value="4">4人游戏</option>
@@ -548,11 +544,7 @@
         <div id="join-view" class="card mb-4" style="display: none;">
             <div class="card-body">
                 <h5 class="card-title">加入房间</h5>
-                <p class="text-muted mb-4">输入房间代码和你的名称加入已有的游戏</p>
-                <div class="mb-4">
-                    <label for="join-player-name" class="form-label">你的名称</label>
-                    <input type="text" id="join-player-name" class="form-control" placeholder="输入你的游戏名称" required>
-                </div>
+                <p class="text-muted mb-4">输入房间代码加入已有的游戏</p>
                 <div class="mb-4">
                     <label for="join-room-code" class="form-label">房间代码</label>
                     <input type="text" id="join-room-code" class="form-control" maxlength="4" placeholder="输入4位房间代码" required>
@@ -717,36 +709,29 @@
 
         // 创建房间
         function createRoom() {
-            const playerNameInput = document.getElementById('create-player-name');
             const playerCountInput = document.getElementById('player-count');
             
             console.log('Create room inputs:', {
-                playerNameInput: playerNameInput ? playerNameInput.value : 'not found',
                 playerCountInput: playerCountInput ? playerCountInput.value : 'not found'
             });
 
-            if (!playerNameInput || !playerCountInput) {
+            if (!playerCountInput) {
                 console.error('Cannot find input elements');
                 return;
             }
 
-            playerName = playerNameInput.value.trim();
             const playerCount = parseInt(playerCountInput.value);
-            
-            if (!playerName) {
-                alert('请输入玩家名称');
-                return;
-            }
 
-            console.log('Creating room with:', { playerName, playerCount });
+            console.log('Creating room with player count:', playerCount);
             socket.emit('create_room', {
-                player_count: playerCount,
-                host_name: playerName
+                player_count: playerCount
             }, (response) => {
                 console.log('Create room response:', response);
                 if (response.error) {
                     alert(response.error);
                 } else {
+                    // 保存服务器分配的玩家名称
+                    playerName = response.player_name;
                     roomCode = response.room_info.code;
                     showView('room-view');
                     updateRoomInfo(response.room_info);
@@ -756,36 +741,34 @@
 
         // 加入房间
         function joinRoom() {
-            const playerNameInput = document.getElementById('join-player-name');
             const roomCodeInput = document.getElementById('join-room-code');
             
             console.log('Join room inputs:', {
-                playerNameInput: playerNameInput ? playerNameInput.value : 'not found',
                 roomCodeInput: roomCodeInput ? roomCodeInput.value : 'not found'
             });
 
-            if (!playerNameInput || !roomCodeInput) {
+            if (!roomCodeInput) {
                 console.error('Cannot find input elements');
                 return;
             }
 
-            playerName = playerNameInput.value.trim();
             roomCode = roomCodeInput.value.trim().toUpperCase();
             
-            if (!playerName || !roomCode) {
-                alert('请输入玩家名称和房间代码');
+            if (!roomCode) {
+                alert('请输入房间代码');
                 return;
             }
 
-            console.log('Joining room with:', { playerName, roomCode });
+            console.log('Joining room with code:', roomCode);
             socket.emit('join_room', {
-                room_code: roomCode,
-                player_name: playerName
+                room_code: roomCode
             }, (response) => {
                 console.log('Join room response:', response);
                 if (response.error) {
                     alert(response.error);
                 } else {
+                    // 保存服务器分配的玩家名称
+                    playerName = response.player_name;
                     showView('room-view');
                     updateRoomInfo(response.room_info);
                 }

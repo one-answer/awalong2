@@ -138,10 +138,9 @@ def handle_create_room(data):
     try:
         print(f"[DEBUG] Received create_room request: {data}")
         player_count = data.get('player_count', 5)
-        host_name = data.get('host_name', '').strip()
-
-        if not host_name:
-            return {'error': '请输入玩家名称'}
+        
+        # 自动生成房主名称为"玩家1"
+        host_name = "玩家1"
 
         room = Room(host_name, player_count)
         rooms[room.code] = room
@@ -157,7 +156,7 @@ def handle_create_room(data):
         # 广播房间创建消息
         socketio.emit('room_update', room_info, to=room.code)
         
-        return {'room_info': room_info}
+        return {'room_info': room_info, 'player_name': host_name}
     except Exception as e:
         print(f"[ERROR] Exception in create_room: {str(e)}")
         import traceback
@@ -170,14 +169,17 @@ def handle_join_room(data):
     try:
         print(f"[DEBUG] Received join_room request: {data}")
         room_code = data.get('room_code', '').strip().upper()
-        player_name = data.get('player_name', '').strip()
 
-        if not room_code or not player_name:
-            return {'error': '请输入房间代码和玩家名称'}
+        if not room_code:
+            return {'error': '请输入房间代码'}
 
         room = rooms.get(room_code)
         if not room:
             return {'error': '房间不存在'}
+            
+        # 自动生成玩家名称，基于现有玩家数量
+        next_player_number = len(room.players) + 1
+        player_name = f"玩家{next_player_number}"
 
         # 添加玩家到房间
         room.add_player(player_name)
@@ -194,7 +196,7 @@ def handle_join_room(data):
         socketio.emit('room_update', room_info, to=room_code)
         print(f"[DEBUG] Broadcasted room update to all players")
 
-        return {'room_info': room_info}
+        return {'room_info': room_info, 'player_name': player_name}
     except Exception as e:
         print(f"[ERROR] Exception in join_room: {str(e)}")
         import traceback
