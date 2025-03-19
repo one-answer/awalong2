@@ -26,6 +26,7 @@ class Player:
         self.role = None
         self.team = None
         self.player_number = None  # 添加玩家编号字段
+        self.magic_tokens = 0  # 添加魔法指示物字段
 
 class Room:
     def __init__(self, host_name, player_count):
@@ -311,9 +312,12 @@ def handle_submit_team(data):
     try:
         room_code = data.get('room_code')
         team = data.get('team', [])
+        magic_token_target = data.get('magic_token_target')  # 获取魔法指示物目标
         
         print(f"[DEBUG] Received team submission for room {room_code}:")
         print(f"Team: {team}")
+        if magic_token_target:
+            print(f"Magic token target: {magic_token_target}")
 
         room = rooms.get(room_code)
         if not room or not room.game:
@@ -325,6 +329,20 @@ def handle_submit_team(data):
 
         # 设置任务队伍
         room.game.current_quest.team = [p for p in room.game.players if p.name in team]
+        
+        # 处理魔法指示物分配
+        if magic_token_target:
+            # 获取队长
+            leader = room.game.get_current_leader()
+            # 获取目标队员
+            target_player = next((p for p in room.game.players if p.name == magic_token_target), None)
+            
+            if target_player and target_player in room.game.current_quest.team:
+                # 给目标队员添加魔法指示物
+                target_player.magic_tokens += 1
+                print(f"[DEBUG] Assigned magic token to {target_player.name}")
+            else:
+                print(f"[DEBUG] Target player not found or not in team: {magic_token_target}")
         
         # 更新游戏阶段为投票阶段
         room.game.current_phase = GamePhase.QUEST_VOTE
@@ -351,9 +369,10 @@ def handle_quest_vote(data):
         room_code = data.get('room_code')
         success = data.get('success')
         player_name = data.get('player_name')
+        use_magic_token = data.get('use_magic_token', False)
         
         print(f"[DEBUG] Received quest vote for room {room_code}:")
-        print(f"Player: {player_name}, Vote: {'success' if success else 'fail'}")
+        print(f"Player: {player_name}, Vote: {'success' if success else 'fail'}, Use Magic: {use_magic_token}")
 
         room = rooms.get(room_code)
         if not room or not room.game:
@@ -373,6 +392,25 @@ def handle_quest_vote(data):
         # 检查玩家是否已经投票
         if current_player.name in room.game.current_quest.votes:
             return {'error': '你已经投过票了'}
+
+        # 处理魔法指示物
+        if use_magic_token:
+            # 检查玩家是否有魔法指示物
+            if current_player.magic_tokens <= 0:
+                return {'error': '你没有魔法指示物'}
+                
+            # 使用魔法指示物
+            current_player.magic_tokens -= 1
+            print(f"[DEBUG] {player_name} used a magic token")
+            
+            # 如果是摩根勒菲，可以选择失败，否则必须成功
+            if current_player.role == Role.MORGAN:
+                # 允许摩根勒菲选择任意结果
+                print(f"[DEBUG] Morgan used magic token but can choose any result")
+            else:
+                # 非摩根勒菲使用魔法指示物时必须成功
+                success = True
+                print(f"[DEBUG] Non-Morgan player used magic token, forcing success")
 
         # 记录投票
         room.game.current_quest.votes[current_player.name] = success

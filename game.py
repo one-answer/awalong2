@@ -49,7 +49,7 @@ class Player:
         self.name = name.strip()
         self.role = None
         self.team = None
-        self.magic_tokens = 1
+        self.magic_tokens = 0  # 初始没有魔法指示物
         self.amulets = 1
         self.revealed_by_amulet = []
     
@@ -518,7 +518,8 @@ class Game:
                 'role': p.role.display_name if hasattr(p, 'role') else None,
                 'team': p.role.team.value if hasattr(p, 'role') else None,
                 'team_display': p.role.team.display_name if hasattr(p, 'role') else None,
-                'player_number': p.player_number
+                'player_number': p.player_number,
+                'magic_tokens': p.magic_tokens if hasattr(p, 'magic_tokens') else 0
             } for p in self.players],
             'quest_results': self.quest_results,
             'successful_quests': self.successful_quests,

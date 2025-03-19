@@ -443,6 +443,57 @@
         .form-check input {
             margin-right: 10px;
         }
+        .magic-token {
+            display: inline-block;
+            margin-left: 10px;
+            background-color: #8e44ad;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .magic-token-button {
+            background-color: #8e44ad;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 5px;
+            margin-left: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .magic-token-button:hover {
+            background-color: #6c3483;
+        }
+        .magic-token-info {
+            background-color: #f1e7f8;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 3px solid #8e44ad;
+            font-size: 0.9rem;
+        }
+        .magic-token-container {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f0ff;
+            border-radius: 8px;
+            border: 1px dashed #8e44ad;
+        }
+        .magic-token-target-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .magic-token-select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            margin-bottom: 10px;
+        }
         .vote-buttons {
             display: flex;
             justify-content: center;
@@ -636,6 +687,15 @@
                 <div id="leader-controls" class="mb-4" style="display: none;">
                     <h6 class="fw-bold mb-3">选择任务队员</h6>
                     <div id="team-selection"></div>
+                    <div class="magic-token-container" id="magic-token-container">
+                        <div class="magic-token-info">
+                            作为本轮队长，你可以派发一个魔法指示物给任意一位队员。拥有魔法指示物的正义阵营队员必须选择任务成功，邪恶阵营队员摩根勒菲除外。
+                        </div>
+                        <label class="magic-token-target-label">选择派发魔法指示物的队员：</label>
+                        <select class="magic-token-select" id="magic-token-target">
+                            <option value="">不派发魔法指示物</option>
+                        </select>
+                    </div>
                     <div class="text-center">
                         <button class="btn btn-primary mt-3" onclick="submitTeam()" id="submit-team-button" disabled>
                             确认队员
@@ -647,11 +707,18 @@
                 <div id="quest-vote-controls" style="display: none;">
                     <h3 class="fw-bold mb-3">任务投票</h3>
                     <p>你是本次任务的队员，请选择任务结果：</p>
+                    <div id="magic-token-vote-info" class="magic-token-info" style="display: none;">
+                        你拥有一个魔法指示物，是否要在本次任务中使用？
+                        <div class="form-check mt-2">
+                            <input type="checkbox" id="use-magic-token" onchange="toggleMagicTokenUse()">
+                            <label for="use-magic-token">使用魔法指示物</label>
+                        </div>
+                    </div>
                     <div class="vote-buttons">
                         <button onclick="submitQuestVote(true)" class="success-button">
                             成功
                         </button>
-                        <button onclick="submitQuestVote(false)" class="fail-button">
+                        <button onclick="submitQuestVote(false)" class="fail-button" id="fail-vote-button">
                             失败
                         </button>
                     </div>
@@ -1071,9 +1138,62 @@
                     <label for="select-${player.name}">
                         <span class="player-number">#${player.player_number}</span>
                         ${player.name}
+                        ${player.magic_tokens > 0 ? `<span class="magic-token">魔法 x${player.magic_tokens}</span>` : ''}
                     </label>
                 </div>
             `).join('');
+            
+            // 更新魔法指示物选择下拉框
+            updateMagicTokenDropdown();
+        }
+
+        function updateMagicTokenDropdown() {
+            const magicTokenSelect = document.getElementById('magic-token-target');
+            if (!magicTokenSelect) return;
+            
+            // 清空现有选项，保留第一个
+            const firstOption = magicTokenSelect.firstElementChild;
+            magicTokenSelect.innerHTML = '';
+            magicTokenSelect.appendChild(firstOption);
+            
+            // 只添加已选中的队员
+            Array.from(selectedTeam).forEach(playerName => {
+                const option = document.createElement('option');
+                option.value = playerName;
+                option.textContent = playerName;
+                magicTokenSelect.appendChild(option);
+            });
+        }
+
+        // 更新处理队伍选择时的函数，以更新魔法指示物下拉框
+        function handleTeamSelection(playerName) {
+            console.log('Handling team selection for:', playerName);
+            const checkbox = document.getElementById(`select-${playerName}`);
+            const gameState = window.currentGameState;
+
+            if (!checkbox || !gameState) {
+                console.error('Missing required elements');
+                return;
+            }
+
+            if (checkbox.checked) {
+                selectedTeam.add(playerName);
+            } else {
+                selectedTeam.delete(playerName);
+            }
+
+            // 更新提交按钮状态
+            const submitButton = document.getElementById('submit-team-button');
+            if (submitButton) {
+                const requiredPlayers = gameState.current_quest.required_players;
+                submitButton.disabled = selectedTeam.size !== requiredPlayers;
+                console.log(`Selected team size: ${selectedTeam.size}, Required: ${requiredPlayers}`);
+            } else {
+                console.error('Submit team button not found');
+            }
+            
+            // 更新魔法指示物下拉框
+            updateMagicTokenDropdown();
         }
 
         function submitTeam() {
@@ -1092,11 +1212,16 @@
                 alert(`请选择 ${requiredPlayers} 名队员`);
                 return;
             }
+            
+            // 获取选择的魔法指示物目标
+            const magicTokenTarget = document.getElementById('magic-token-target').value;
+            console.log('Magic token target:', magicTokenTarget);
 
             console.log('Sending team selection to server...');
             socket.emit('submit_team', {
                 room_code: roomCode,
-                team: Array.from(selectedTeam)
+                team: Array.from(selectedTeam),
+                magic_token_target: magicTokenTarget || null
             }, (response) => {
                 console.log('Submit team response:', response);
                 if (response.error) {
@@ -1104,6 +1229,72 @@
                 } else {
                     console.log('Team submitted successfully');
                     selectedTeam.clear();
+                }
+            });
+        }
+        
+        // 魔法指示物使用状态
+        let useMagicToken = false;
+        
+        function toggleMagicTokenUse() {
+            const checkbox = document.getElementById('use-magic-token');
+            if (!checkbox) return;
+            
+            useMagicToken = checkbox.checked;
+            console.log('Use magic token:', useMagicToken);
+            
+            // 获取当前玩家信息和角色
+            const gameState = window.currentGameState;
+            if (!gameState) return;
+            
+            const currentPlayer = gameState.players.find(p => p.name === playerName);
+            if (!currentPlayer) return;
+            
+            const failButton = document.getElementById('fail-vote-button');
+            if (!failButton) return;
+            
+            // 如果使用魔法指示物且不是摩根勒菲，禁用失败按钮
+            if (useMagicToken && currentPlayer.role !== '摩根勒菲') {
+                failButton.disabled = true;
+                failButton.style.opacity = '0.5';
+                failButton.style.cursor = 'not-allowed';
+            } else {
+                failButton.disabled = false;
+                failButton.style.opacity = '1';
+                failButton.style.cursor = 'pointer';
+            }
+        }
+
+        function submitQuestVote(success) {
+            console.log('Submitting quest vote:', success);
+            socket.emit('submit_quest_vote', {
+                room_code: roomCode,
+                player_name: playerName,
+                success: success,
+                use_magic_token: useMagicToken
+            }, (response) => {
+                console.log('Quest vote response:', response);
+                if (response.error) {
+                    alert(response.error);
+                } else {
+                    // 重置魔法指示物使用状态
+                    useMagicToken = false;
+                    const checkbox = document.getElementById('use-magic-token');
+                    if (checkbox) checkbox.checked = false;
+                }
+            });
+        }
+
+        // 添加选择下一任队长的函数
+        function selectNextLeader(nextLeaderName) {
+            console.log('Selecting next leader:', nextLeaderName);
+            socket.emit('select_next_leader', {
+                room_code: roomCode,
+                next_leader: nextLeaderName
+            }, (response) => {
+                console.log('Select next leader response:', response);
+                if (response.error) {
+                    alert(response.error);
                 }
             });
         }
@@ -1185,6 +1376,7 @@
                                       ${gameState.current_quest.team.some(p => p.name === player.name) ? 'selected-team' : ''}">
                         <span class="player-number">#${player.player_number}</span>
                         <div class="player-name">${player.name}</div>
+                        ${player.magic_tokens > 0 ? `<span class="magic-token">魔法 x${player.magic_tokens}</span>` : ''}
                         ${player.is_leader ? '<div class="leader-badge">队长</div>' : ''}
                         ${gameState.current_quest.team.some(p => p.name === player.name) ? 
                             '<div class="team-badge">任务队员</div>' : ''}
@@ -1224,6 +1416,15 @@
             if (questVoteControls) {
                 if (gameState.current_phase === 'QUEST_VOTE' && isInTeam) {
                     questVoteControls.style.display = 'block';
+                    
+                    // 显示魔法指示物使用选项
+                    const magicTokenInfo = document.getElementById('magic-token-vote-info');
+                    if (magicTokenInfo && currentPlayer && currentPlayer.magic_tokens > 0) {
+                        magicTokenInfo.style.display = 'block';
+                    } else if (magicTokenInfo) {
+                        magicTokenInfo.style.display = 'none';
+                    }
+                    
                     // 邪恶阵营可以投失败票
                     const voteButtons = questVoteControls.querySelector('.vote-buttons');
                     if (voteButtons && currentPlayer.team === 'EVIL') {
@@ -1231,7 +1432,7 @@
                             <button onclick="submitQuestVote(true)" class="success-button">
                                 成功
                             </button>
-                            <button onclick="submitQuestVote(false)" class="fail-button">
+                            <button onclick="submitQuestVote(false)" class="fail-button" id="fail-vote-button">
                                 失败
                             </button>
                         `;
@@ -1242,6 +1443,18 @@
                                 成功
                             </button>
                         `;
+                    }
+                    
+                    // 重置魔法指示物使用状态
+                    useMagicToken = false;
+                    const checkbox = document.getElementById('use-magic-token');
+                    if (checkbox) checkbox.checked = false;
+                    // 恢复失败按钮状态
+                    const failButton = document.getElementById('fail-vote-button');
+                    if (failButton) {
+                        failButton.disabled = false;
+                        failButton.style.opacity = '1';
+                        failButton.style.cursor = 'pointer';
                     }
                 } else {
                     questVoteControls.style.display = 'none';
@@ -1379,61 +1592,6 @@
 
         // 添加队伍选择相关函数
         let selectedTeam = new Set();
-
-        function handleTeamSelection(playerName) {
-            console.log('Handling team selection for:', playerName);
-            const checkbox = document.getElementById(`select-${playerName}`);
-            const gameState = window.currentGameState;
-
-            if (!checkbox || !gameState) {
-                console.error('Missing required elements');
-                return;
-            }
-
-            if (checkbox.checked) {
-                selectedTeam.add(playerName);
-            } else {
-                selectedTeam.delete(playerName);
-            }
-
-            // 更新提交按钮状态
-            const submitButton = document.getElementById('submit-team-button');
-            if (submitButton) {
-                const requiredPlayers = gameState.current_quest.required_players;
-                submitButton.disabled = selectedTeam.size !== requiredPlayers;
-                console.log(`Selected team size: ${selectedTeam.size}, Required: ${requiredPlayers}`);
-            } else {
-                console.error('Submit team button not found');
-            }
-        }
-
-        function submitQuestVote(success) {
-            console.log('Submitting quest vote:', success);
-            socket.emit('submit_quest_vote', {
-                room_code: roomCode,
-                player_name: playerName,
-                success: success
-            }, (response) => {
-                console.log('Quest vote response:', response);
-                if (response.error) {
-                    alert(response.error);
-                }
-            });
-        }
-
-        // 添加选择下一任队长的函数
-        function selectNextLeader(nextLeaderName) {
-            console.log('Selecting next leader:', nextLeaderName);
-            socket.emit('select_next_leader', {
-                room_code: roomCode,
-                next_leader: nextLeaderName
-            }, (response) => {
-                console.log('Select next leader response:', response);
-                if (response.error) {
-                    alert(response.error);
-                }
-            });
-        }
     </script>
 </body>
 </html> 
