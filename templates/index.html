@@ -29,6 +29,14 @@
         .player-number {
             font-weight: bold;
             margin-right: 8px;
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
         }
         #team-selection {
             max-height: 300px;
@@ -336,6 +344,7 @@
                         ${gameState.players.map(player => `
                             ${player.name !== playerName ? `
                                 <div class="player-card">
+                                    <span class="player-number">#${player.player_number}</span>
                                     <div class="player-name">${player.name}</div>
                                     <button onclick="selectNextLeader('${player.name}')" 
                                             class="select-leader-button">
@@ -548,6 +557,7 @@
                     <ul>
                         ${roomInfo.players.map(player => `
                             <li class="player-item ${player.is_host ? 'host' : ''}">
+                                <span class="player-number">#${player.player_number}</span>
                                 ${player.name} ${player.is_host ? '(房主)' : ''}
                             </li>
                         `).join('')}
@@ -659,11 +669,13 @@
             const teamSelection = document.getElementById('team-selection');
             teamSelection.innerHTML = gameState.players.map(player => `
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" 
-                           value="${player.name}" id="player-${player.name}"
+                    <input type="checkbox" 
+                           id="select-${player.name}" 
+                           value="${player.name}"
                            onchange="handleTeamSelection('${player.name}')"
                            ${selectedTeam.has(player.name) ? 'checked' : ''}>
-                    <label class="form-check-label" for="player-${player.name}">
+                    <label for="select-${player.name}">
+                        <span class="player-number">#${player.player_number}</span>
                         ${player.name}
                     </label>
                 </div>
@@ -770,6 +782,7 @@
                                 <div class="player-card ${player.is_leader ? 'leader' : ''} 
                                                   ${player.name === playerName ? 'self' : ''} 
                                                   ${gameState.current_quest.team.some(p => p.name === player.name) ? 'selected-team' : ''}">
+                                    <span class="player-number">#${player.player_number}</span>
                                     <div class="player-name">${player.name}</div>
                                     ${player.name === playerName ? `
                                         <div class="player-role">${player.role}</div>
@@ -794,7 +807,10 @@
                                                value="${player.name}"
                                                onchange="handleTeamSelection('${player.name}')"
                                                ${selectedTeam.has(player.name) ? 'checked' : ''}>
-                                        <label for="select-${player.name}">${player.name}</label>
+                                        <label for="select-${player.name}">
+                                            <span class="player-number">#${player.player_number}</span>
+                                            ${player.name}
+                                        </label>
                                     </div>
                                 `).join('')}
                             </div>
@@ -836,6 +852,7 @@
                                 ${gameState.players.map(player => `
                                     ${player.name !== playerName ? `
                                         <div class="player-card">
+                                            <span class="player-number">#${player.player_number}</span>
                                             <div class="player-name">${player.name}</div>
                                             <button onclick="selectNextLeader('${player.name}')" 
                                                     class="select-leader-button">

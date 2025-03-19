@@ -515,12 +515,13 @@ class Game:
                 'is_leader': p == self.get_current_leader(),
                 'role': p.role.display_name if hasattr(p, 'role') else None,
                 'team': p.role.team.value if hasattr(p, 'role') else None,
-                'team_display': p.role.team.display_name if hasattr(p, 'role') else None
+                'team_display': p.role.team.display_name if hasattr(p, 'role') else None,
+                'player_number': p.player_number
             } for p in self.players],
             'quest_results': self.quest_results,
             'current_quest': {
                 'required_players': self.current_quest.required_players,
-                'team': [{'name': p.name} for p in self.current_quest.team],
+                'team': [{'name': p.name, 'player_number': p.player_number} for p in self.current_quest.team],
                 'votes': list(self.current_quest.votes.keys())
             }
         }

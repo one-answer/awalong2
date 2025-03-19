@@ -25,6 +25,7 @@ class Player:
         self.is_host = False
         self.role = None
         self.team = None
+        self.player_number = None  # 添加玩家编号字段
 
 class Room:
     def __init__(self, host_name, player_count):
@@ -34,6 +35,7 @@ class Room:
         # 创建房主玩家并设置为房主
         host_player = Player(host_name)
         host_player.is_host = True
+        host_player.player_number = 1  # 房主为1号玩家
         self.players = [host_player]
         self.game = None  # 初始化时不创建游戏
 
@@ -44,7 +46,9 @@ class Room:
         if any(p.name == player_name for p in self.players):
             raise ValueError("玩家名称已存在")
         
-        self.players.append(Player(player_name))
+        new_player = Player(player_name)
+        new_player.player_number = len(self.players) + 1  # 玩家编号从1开始递增
+        self.players.append(new_player)
 
     def start_game(self):
         """开始游戏"""
@@ -82,7 +86,8 @@ class Room:
             'player_count': self.player_count,
             'players': [{
                 'name': p.name,
-                'is_host': p.is_host
+                'is_host': p.is_host,
+                'player_number': p.player_number
             } for p in self.players],
             'game_started': self.game is not None
         }
