@@ -188,6 +188,44 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
+        .room-code-container {
+            position: relative;
+            margin: 15px auto;
+            max-width: 300px;
+        }
+        .copy-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #7e4a21;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .copy-button:hover {
+            background-color: #5e3718;
+        }
+        .copy-message {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .copy-message.show {
+            opacity: 1;
+        }
         .player-count {
             font-size: 1.2rem;
             color: #6c757d;
@@ -831,7 +869,11 @@
             roomInfoDiv.innerHTML = `
                 <div class="room-header">
                     <h2 class="text-center">游戏房间</h2>
-                    <div class="room-code">${roomInfo.code}</div>
+                    <div class="room-code-container">
+                        <div class="room-code">${roomInfo.code}</div>
+                        <button class="copy-button" onclick="copyRoomCode('${roomInfo.code}')">复制</button>
+                        <div id="copy-message" class="copy-message">已复制</div>
+                    </div>
                     <p class="player-count text-center">玩家数量: ${roomInfo.players.length}/${roomInfo.player_count}</p>
                 </div>
                 <div class="players-list">
@@ -970,6 +1012,28 @@
                 'EVIL': '邪恶阵营'
             };
             return teamNames[team] || '未知';
+        }
+
+        // 复制房间代码
+        function copyRoomCode(code) {
+            // 使用navigator.clipboard API复制文本
+            navigator.clipboard.writeText(code)
+                .then(() => {
+                    console.log('房间代码已复制:', code);
+                    // 显示复制成功消息
+                    const copyMessage = document.getElementById('copy-message');
+                    if (copyMessage) {
+                        copyMessage.classList.add('show');
+                        // 2秒后隐藏消息
+                        setTimeout(() => {
+                            copyMessage.classList.remove('show');
+                        }, 2000);
+                    }
+                })
+                .catch(err => {
+                    console.error('复制失败:', err);
+                    alert('复制失败，请手动复制房间代码。');
+                });
         }
 
         function updateGameStatus(gameState) {
