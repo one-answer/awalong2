@@ -508,7 +508,7 @@ class Game:
 
     def get_game_status(self):
         """获取游戏状态"""
-        return {
+        status = {
             'quest_number': self.quest_number,
             'current_phase': self.current_phase.value,
             'current_leader': self.get_current_leader().name,
@@ -521,12 +521,20 @@ class Game:
                 'player_number': p.player_number
             } for p in self.players],
             'quest_results': self.quest_results,
+            'successful_quests': self.successful_quests,
+            'failed_quests': self.failed_quests,
             'current_quest': {
                 'required_players': self.current_quest.required_players,
                 'team': [{'name': p.name, 'player_number': p.player_number} for p in self.current_quest.team],
                 'votes': list(self.current_quest.votes.keys())
             }
         }
+        
+        # 如果游戏结束，添加获胜者信息
+        if self.current_phase == GamePhase.GAME_OVER:
+            status['winner'] = 'GOOD' if self.successful_quests >= 3 else 'EVIL'
+            
+        return status
 
     def use_amulet(self, user: Player, target: Player) -> AmuletResult:
         """使用护身符查验玩家阵营"""

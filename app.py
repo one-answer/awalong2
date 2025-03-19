@@ -410,10 +410,12 @@ def handle_quest_vote(data):
             if game_over:
                 room.game.current_phase = GamePhase.GAME_OVER
                 room.game.winner = winner
+                # 获取包含游戏结果的游戏状态
+                game_state = room.game.get_game_status()
                 # 广播游戏结束
                 socketio.emit('game_over', {
-                    'winner': winner,
-                    'game_state': room.game.get_game_status()
+                    'winner': game_state['winner'],
+                    'game_state': game_state
                 }, to=room_code)
             else:
                 # 更新游戏阶段为选择下一任队长

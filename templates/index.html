@@ -700,9 +700,18 @@
         socket.on('game_over', (data) => {
             console.log('Game over:', data);
             const gameState = data.game_state;
-            const successfulQuests = gameState.successful_quests || 0;
-            const failedQuests = gameState.failed_quests || 0;
-            alert(`游戏结束！${successfulQuests >= 3 ? '正义阵营' : '邪恶阵营'}获胜！\n任务成功: ${successfulQuests}\n任务失败: ${failedQuests}`);
+            const winner = data.winner;
+            
+            // Store the quest results for display
+            window.currentGameState = gameState;
+            
+            // Calculate completed quests counts from quest_results array
+            const successfulQuests = gameState.quest_results.filter(result => result === true).length;
+            const failedQuests = gameState.quest_results.filter(result => result === false).length;
+            
+            console.log(`Game over results - Success: ${successfulQuests}, Failed: ${failedQuests}, Winner: ${winner}`);
+            
+            alert(`游戏结束！${winner === 'GOOD' ? '正义阵营' : '邪恶阵营'}获胜！\n任务成功: ${successfulQuests}\n任务失败: ${failedQuests}`);
             updateGameView(gameState);
         });
 
@@ -1279,14 +1288,31 @@
                         gameOverMsg.className = 'game-over';
                         gameContent.appendChild(gameOverMsg);
                     }
+                    
+                    // 计算任务结果
+                    const successfulQuests = gameState.quest_results.filter(result => result === true).length;
+                    const failedQuests = gameState.quest_results.filter(result => result === false).length;
+                    const winner = successfulQuests >= 3 ? 'GOOD' : 'EVIL';
+                    
                     gameOverMsg.innerHTML = `
                         <h2>游戏结束</h2>
                         <p class="winner-announcement">
-                            ${gameState.successful_quests >= 3 ? '正义阵营' : '邪恶阵营'}获胜！
+                            ${winner === 'GOOD' ? '正义阵营' : '邪恶阵营'}获胜！
                         </p>
                         <div class="final-results">
-                            <p>任务成功: ${gameState.successful_quests || 0}</p>
-                            <p>任务失败: ${gameState.failed_quests || 0}</p>
+                            <p>任务成功: ${successfulQuests}</p>
+                            <p>任务失败: ${failedQuests}</p>
+                            <p>完成任务: ${successfulQuests + failedQuests}/5</p>
+                        </div>
+                        <div class="quest-results mt-3">
+                            <h4>任务详情:</h4>
+                            <div class="d-flex justify-content-center gap-2 mt-2">
+                                ${gameState.quest_results.map((result, index) => 
+                                    `<span class="badge ${result ? 'bg-success' : 'bg-danger'} p-2">
+                                        第${index + 1}轮: ${result ? '成功' : '失败'}
+                                    </span>`
+                                ).join(' ')}
+                            </div>
                         </div>
                         <button onclick="location.reload()" class="new-game-button">
                             开始新游戏
