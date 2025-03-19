@@ -604,7 +604,7 @@
                     <h6 class="fw-bold mb-3">选择任务队员</h6>
                     <div id="team-selection"></div>
                     <div class="text-center">
-                        <button class="btn btn-primary mt-3" onclick="submitTeam()" id="submit-team-btn" disabled>
+                        <button class="btn btn-primary mt-3" onclick="submitTeam()" id="submit-team-button" disabled>
                             确认队员
                         </button>
                     </div>
@@ -973,19 +973,24 @@
             `).join('');
         }
 
-        function checkTeamSize(requiredPlayers) {
-            const selectedPlayers = document.querySelectorAll('#team-selection input:checked');
-            const submitButton = document.getElementById('submit-team-btn');
-            submitButton.disabled = selectedPlayers.length !== requiredPlayers;
-        }
-
         function submitTeam() {
             console.log('Submitting team:', Array.from(selectedTeam));
-            if (selectedTeam.size !== window.currentGameState.current_quest.required_players) {
-                alert(`请选择 ${window.currentGameState.current_quest.required_players} 名队员`);
+            
+            const gameState = window.currentGameState;
+            if (!gameState) {
+                console.error('Game state not found');
+                return;
+            }
+            
+            const requiredPlayers = gameState.current_quest.required_players;
+            console.log(`Required team size: ${requiredPlayers}, Current selection size: ${selectedTeam.size}`);
+            
+            if (selectedTeam.size !== requiredPlayers) {
+                alert(`请选择 ${requiredPlayers} 名队员`);
                 return;
             }
 
+            console.log('Sending team selection to server...');
             socket.emit('submit_team', {
                 room_code: roomCode,
                 team: Array.from(selectedTeam)
@@ -994,6 +999,7 @@
                 if (response.error) {
                     alert(response.error);
                 } else {
+                    console.log('Team submitted successfully');
                     selectedTeam.clear();
                 }
             });
@@ -1121,22 +1127,7 @@
             if (leaderControls) {
                 leaderControls.style.display = isLeader && gameState.current_phase === 'LEADER_TURN' ? 'block' : 'none';
                 if (isLeader && gameState.current_phase === 'LEADER_TURN') {
-                    const teamSelection = document.getElementById('team-selection');
-                    if (teamSelection) {
-                        teamSelection.innerHTML = gameState.players.map(player => `
-                            <div class="form-check">
-                                <input type="checkbox" 
-                                       id="select-${player.name}" 
-                                       value="${player.name}"
-                                       onchange="handleTeamSelection('${player.name}')"
-                                       ${selectedTeam.has(player.name) ? 'checked' : ''}>
-                                <label for="select-${player.name}">
-                                    <span class="player-number">#${player.player_number}</span>
-                                    ${player.name}
-                                </label>
-                            </div>
-                        `).join('');
-                    }
+                    updateTeamSelection(gameState);
                 }
             }
 
@@ -1303,8 +1294,11 @@
             // 更新提交按钮状态
             const submitButton = document.getElementById('submit-team-button');
             if (submitButton) {
-                submitButton.disabled = selectedTeam.size !== gameState.current_quest.required_players;
-                console.log(`Selected team size: ${selectedTeam.size}, Required: ${gameState.current_quest.required_players}`);
+                const requiredPlayers = gameState.current_quest.required_players;
+                submitButton.disabled = selectedTeam.size !== requiredPlayers;
+                console.log(`Selected team size: ${selectedTeam.size}, Required: ${requiredPlayers}`);
+            } else {
+                console.error('Submit team button not found');
             }
         }
 
