@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,74 +23,152 @@
       gtag('config', 'G-7EX0NVXWMZ');
     </script>
     <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            --subtitle-color: #555;
+            --form-label-color: #495057;
+            --border-color: #ced4da;
+            --card-title-color: #7e4a21;
+            --header-font: 'Times New Roman', Times, serif;
+            --bg-image: url('https://img.freepik.com/free-photo/medieval-castle-night-with-fog-full-moon_124715-13.jpg');
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: rgba(33, 37, 41, 0.92);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            --subtitle-color: #adb5bd;
+            --form-label-color: #ced4da;
+            --border-color: #495057;
+            --card-title-color: #d3a86b;
+            --card-title-color-rgb: 211, 168, 107;
+            --bg-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://img.freepik.com/free-photo/medieval-castle-night-with-fog-full-moon_124715-13.jpg');
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            --subtitle-color: #555;
+            --form-label-color: #495057;
+            --border-color: #ced4da;
+            --card-title-color: #7e4a21;
+            --card-title-color-rgb: 126, 74, 33;
+            --bg-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url('https://img.freepik.com/free-photo/medieval-castle-daytime-with-blue-sky_124715-13.jpg');
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1a1a1a;
-            background-image: url('https://img.freepik.com/free-photo/medieval-castle-night-with-fog-full-moon_124715-13.jpg');
+            background-color: var(--bg-color);
+            background-image: var(--bg-image);
             background-size: cover;
             background-attachment: fixed;
-            color: #333;
+            color: var(--text-color);
             line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
         }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            z-index: 1000;
+            color: var(--text-color);
+            border: none;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(30deg);
+        }
+        
         .game-container {
             max-width: 900px;
             margin: 30px auto;
             padding: 20px;
-            background-color: rgba(255, 255, 255, 0.92);
+            background-color: var(--card-bg);
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
+        
         h1.main-title {
-            color: #a37d28;
+            color: var(--card-title-color);
             font-size: 3rem;
             font-weight: 700;
             text-align: center;
             margin-bottom: 30px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             letter-spacing: 2px;
-            font-family: 'Times New Roman', Times, serif;
+            font-family: var(--header-font);
         }
+        
         .title-subtitle {
             text-align: center;
-            color: #555;
+            color: var(--subtitle-color);
             font-style: italic;
             margin-top: -20px;
             margin-bottom: 30px;
         }
+        
         .card {
             border: none;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
             overflow: hidden;
             margin-bottom: 30px;
+            background-color: var(--card-bg);
         }
+        
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
+        
         .card-title {
-            color: #7e4a21;
+            color: var(--card-title-color);
             font-weight: 600;
             padding-bottom: 10px;
-            border-bottom: 2px solid #e9ecef;
+            border-bottom: 2px solid var(--border-color);
             margin-bottom: 20px;
         }
+        
         .card-body {
             padding: 25px;
+            color: var(--text-color);
         }
+        
         .form-label {
             font-weight: 500;
-            color: #495057;
+            color: var(--form-label-color);
             margin-bottom: 8px;
         }
+        
         .form-control, .form-select {
             border-radius: 8px;
-            border: 1px solid #ced4da;
+            border: 1px solid var(--border-color);
             padding: 10px 15px;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s, color 0.3s;
             font-size: 1rem;
+            background-color: var(--card-bg);
+            color: var(--text-color);
         }
+        
         .form-control:focus, .form-select:focus {
             border-color: #86b7fe;
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
@@ -135,7 +213,7 @@
             }
         }
         .btn-primary {
-            background-color: #7e4a21;
+            background-color: var(--card-title-color);
             color: white;
         }
         .btn-primary:hover {
@@ -148,7 +226,6 @@
         }
         .btn-success:hover {
             background-color: #3a500c;
-            transform: translateY(-2px);
         }
         .btn-secondary {
             background-color: #6c757d;
@@ -445,26 +522,24 @@
             margin: 15px 0;
         }
         .form-check {
-            background-color: white;
             padding: 10px 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: all 0.2s;
+            margin-bottom: 10px;
             cursor: pointer;
-            position: relative;
-            display: flex;
-            align-items: center;
+            transition: all 0.3s ease;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
         }
         
         .form-check:hover {
-            background-color: #f8f9fa;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
         .form-check.selected {
-            background-color: #e6f4ff;
-            border: 1px solid #1890ff;
+            background-color: rgba(var(--card-title-color-rgb), 0.3);
+            border-color: var(--card-title-color);
+            box-shadow: 0 0 0 2px var(--card-title-color);
         }
         
         .form-check input[type="checkbox"] {
@@ -484,16 +559,29 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            font-weight: 500;
         }
-        .magic-token {
-            display: inline-block;
-            margin-left: 10px;
-            background-color: #8e44ad;
+        
+        .player-number {
+            background-color: var(--card-title-color);
             color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
             font-weight: bold;
+        }
+        
+        .magic-token {
+            font-size: 12px;
+            background-color: #6a0dad;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
         }
         .magic-token-button {
             background-color: #8e44ad;
@@ -664,16 +752,13 @@
         }
         
         .accordion-button {
-            background-color: #7e4a21;
-            color: white;
-            font-weight: 600;
-            border-radius: 15px;
-            padding: 15px 20px;
-            font-size: 1.2rem;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
         
         .accordion-button:not(.collapsed) {
-            background-color: #5e3718;
+            background-color: var(--card-title-color);
             color: white;
         }
         
@@ -835,9 +920,80 @@
             transform: none;
             background-color: #6c757d;
         }
+        
+        /* 添加更多主题相关样式 */
+        .list-group-item {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .accordion-body {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        /* 增强表格样式 */
+        .table {
+            color: var(--text-color);
+            transition: color 0.3s;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .table thead th {
+            background-color: rgba(var(--card-title-color-rgb), 0.2);
+            border-color: var(--border-color);
+            padding: 12px 15px;
+            font-weight: 600;
+            text-align: left;
+        }
+        
+        .table tbody td {
+            padding: 10px 15px;
+            border-color: var(--border-color);
+            background-color: var(--card-bg);
+        }
+        
+        .table tbody tr:hover td {
+            background-color: rgba(var(--card-title-color-rgb), 0.1);
+        }
+        
+        #playerInfoTable {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+        
+        #playerInfoTable th, #playerInfoTable td {
+            color: var(--text-color);
+            border-color: var(--border-color);
+            padding: 12px 16px;
+        }
     </style>
 </head>
 <body>
+    <!-- 主题切换按钮 -->
+    <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <i class="bi bi-sun-fill" id="lightIcon" style="display: none;"></i>
+        <i class="bi bi-moon-fill" id="darkIcon"></i>
+    </button>
+    
     <div class="game-container">
         <h1 class="main-title">阿瓦隆传奇</h1>
         <p class="title-subtitle">亚瑟王的骑士们，正义与邪恶的终极对决</p>
@@ -1075,12 +1231,45 @@
         // 在连接时保存玩家名称
         let playerName = '';
         let roomCode = '';
-
-        // Socket.IO 连接
+        let gameStarted = false;
         const socket = io({
             transports: ['websocket', 'polling'],
         });
+        
+        // 实现主题切换功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const lightIcon = document.getElementById('lightIcon');
+            const darkIcon = document.getElementById('darkIcon');
+            const htmlElement = document.documentElement;
+            
+            // 从本地存储加载主题设置
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            htmlElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcons(savedTheme);
+            
+            // 切换主题
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcons(newTheme);
+            });
+            
+            function updateThemeIcons(theme) {
+                if (theme === 'dark') {
+                    darkIcon.style.display = 'block';
+                    lightIcon.style.display = 'none';
+                } else {
+                    darkIcon.style.display = 'none';
+                    lightIcon.style.display = 'block';
+                }
+            }
+        });
 
+        // Socket.IO 连接
         socket.on('connect', () => {
             console.log('Connected to server');
         });
