@@ -613,6 +613,99 @@
             color: #6c757d;
             font-style: italic;
         }
+        
+        /* Game Rules Styles */
+        .rules-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .accordion-button {
+            background-color: #7e4a21;
+            color: white;
+            font-weight: 600;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background-color: #5e3718;
+            color: white;
+        }
+        
+        .accordion-button:focus {
+            box-shadow: 0 0 0 0.25rem rgba(126, 74, 33, 0.25);
+            border-color: #7e4a21;
+        }
+        
+        .accordion-button::after {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        }
+        
+        .rules-content {
+            padding: 20px;
+            font-size: 1rem;
+            color: #333;
+        }
+        
+        .rules-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .rules-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .rules-section h3 {
+            color: #7e4a21;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .rules-section h4 {
+            color: #2e4172;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .rules-section ul, .rules-section ol {
+            padding-left: 20px;
+        }
+        
+        .rules-section li {
+            margin-bottom: 8px;
+        }
+        
+        .roles-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .roles-column {
+            flex: 1;
+            min-width: 250px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .roles-column:first-child {
+            border-left-color: #3266c1;
+        }
+        
+        .roles-column:last-child {
+            border-left-color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -780,6 +873,81 @@
         </div>
     </div>
 
+    <!-- Game Rules Section -->
+    <div class="game-container rules-container mt-4">
+        <div class="accordion" id="gameRulesAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="gameRulesHeading">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gameRulesCollapse" aria-expanded="false" aria-controls="gameRulesCollapse">
+                        游戏规则说明
+                    </button>
+                </h2>
+                <div id="gameRulesCollapse" class="accordion-collapse collapse" aria-labelledby="gameRulesHeading" data-bs-parent="#gameRulesAccordion">
+                    <div class="accordion-body rules-content">
+                        <div class="rules-section">
+                            <h3>基本概念</h3>
+                            <ul>
+                                <li><strong>游戏目标</strong>：正义阵营需要成功完成3次任务获胜，邪恶阵营需要使3次任务失败获胜</li>
+                                <li><strong>身份隐藏</strong>：除特殊角色外，玩家不知道其他人的身份</li>
+                                <li><strong>任务机制</strong>：每轮由队长选择队员执行任务，队员可以选择任务成功或失败</li>
+                            </ul>
+                        </div>
+
+                        <div class="rules-section">
+                            <h3>游戏流程</h3>
+                            <ol>
+                                <li><strong>准备阶段</strong>：系统随机分配角色给每个玩家</li>
+                                <li><strong>任务阶段</strong>：游戏共有5轮任务，需要完成3次任务判定胜负</li>
+                                <li><strong>每轮任务流程</strong>：
+                                    <ul>
+                                        <li>队长选择一定数量的队员（不同轮次、不同人数要求不同）</li>
+                                        <li>队员秘密投票决定任务成功或失败（正义阵营只能选择成功）</li>
+                                        <li>任何一票失败都会导致任务失败</li>
+                                    </ul>
+                                </li>
+                                <li><strong>任务结束</strong>：任务成功或失败后，队长选择下一任队长</li>
+                                <li><strong>游戏结束</strong>：当一方阵营达成胜利条件时游戏结束</li>
+                            </ol>
+                        </div>
+
+                        <div class="rules-section">
+                            <h3>特殊规则</h3>
+                            <p><strong>魔法指示物</strong>：队长可以派发魔法指示物给队员，拥有魔法指示物的队员在执行任务时会自动使用</p>
+                            <ul>
+                                <li>正义阵营玩家使用魔法指示物时必须选择任务成功</li>
+                                <li>邪恶阵营中的摩根勒菲使用魔法指示物时可以选择任务失败</li>
+                            </ul>
+                        </div>
+
+                        <div class="rules-section">
+                            <h3>角色介绍</h3>
+                            <div class="roles-container">
+                                <div class="roles-column">
+                                    <h4>正义阵营</h4>
+                                    <ul>
+                                        <li><strong>亚瑟的忠臣</strong>：效忠于亚瑟王的正义骑士，不具特殊能力</li>
+                                        <li><strong>公爵</strong>：在最终任务中可以指定一位玩家放下一只手</li>
+                                        <li><strong>大公</strong>：在最终任务中，邪恶方揭露身份后，可以改变一个玩家一只手的指向</li>
+                                    </ul>
+                                </div>
+                                <div class="roles-column">
+                                    <h4>邪恶阵营</h4>
+                                    <ul>
+                                        <li><strong>摩根勒菲</strong>：不受魔法指示物效果影响，可以投失败票</li>
+                                        <li><strong>王储</strong>：不知道邪恶方有谁，但邪恶方知道谁是王储</li>
+                                        <li><strong>幻形妖</strong>：邪恶方不知道幻形妖是谁，幻形妖也不知道哪些人是邪恶方</li>
+                                        <li><strong>莫德雷德的爪牙</strong>：知道其他邪恶阵营的人（除了幻形妖）</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // 在连接时保存玩家名称
         let playerName = '';
