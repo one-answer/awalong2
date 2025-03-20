@@ -813,6 +813,28 @@
         #waiting-next-leader .alert p {
             margin-bottom: 10px;
         }
+        
+        .disabled-player {
+            opacity: 0.6;
+            background-color: #f1f1f1;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .disabled-player:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .select-leader-button.disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .select-leader-button.disabled:hover {
+            transform: none;
+            background-color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -963,6 +985,7 @@
                     <h3 class="fw-bold mb-3">选择下一任队长</h3>
                     <div class="alert alert-info">
                         <p><i class="bi bi-info-circle-fill"></i> 作为当前队长，你需要选择下一轮任务的队长。</p>
+                        <p><span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill"></i> 注意</span> 新队长必须是没当过队长的玩家。</p>
                         <p>战略提示：选择合适的队长可以影响游戏走向，慎重选择！</p>
                     </div>
                     <div class="players-grid">
@@ -1825,18 +1848,26 @@
                         // 生成除了当前队长之外的所有玩家列表
                         playersGrid.innerHTML = gameState.players.map(player => {
                             if (player.name !== playerName) {
+                                const hasBeenLeader = player.has_been_leader;
+                                const playerCardClass = hasBeenLeader ? 'player-card disabled-player' : 'player-card';
                                 return `
-                                    <div class="player-card">
+                                    <div class="${playerCardClass}">
                                         <span class="player-number">#${player.player_number}</span>
                                         <div class="player-name">${player.name}</div>
                                         <div class="player-role mt-2">
                                             ${player.magic_tokens > 0 ? 
                                                 `<span class="magic-token">魔法 x${player.magic_tokens}</span>` : ''}
+                                            ${hasBeenLeader ? 
+                                                `<span class="badge bg-secondary">已当过队长</span>` : ''}
                                         </div>
-                                        <button onclick="selectNextLeader('${player.name}')" 
-                                                class="select-leader-button mt-3">
-                                            选为队长
-                                        </button>
+                                        ${!hasBeenLeader ? 
+                                            `<button onclick="selectNextLeader('${player.name}')" 
+                                                    class="select-leader-button mt-3">
+                                                选为队长
+                                            </button>` : 
+                                            `<button class="select-leader-button mt-3 disabled" disabled>
+                                                不可选择
+                                            </button>`}
                                     </div>
                                 `;
                             }
@@ -1869,6 +1900,7 @@
                                 '<span class="badge bg-danger">失败</span>'}
                             </p>
                             <p>等待当前队长 <strong>${gameState.current_leader}</strong> 选择下一任队长...</p>
+                            <p><i class="bi bi-info-circle-fill"></i> 规则：新队长必须是没当过队长的玩家</p>
                             <p>下一轮任务需要 ${gameState.current_quest.required_players} 名队员</p>
                         </div>
                     `;

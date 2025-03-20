@@ -298,6 +298,9 @@ class Game:
         self.current_leader_index = 0
         self.quest_number = 1
         
+        # 添加已担任过队长的玩家集合
+        self.previous_leaders = set()
+        
         # 设置任务需求玩家数
         if self.player_count == 4:
             self.quest_requirements = [2, 3, 2, 3, 3]
@@ -363,7 +366,10 @@ class Game:
 
     def get_current_leader(self):
         """获取当前队长"""
-        return self.players[self.current_leader_index]
+        current_leader = self.players[self.current_leader_index]
+        # 添加当前队长到已担任过队长的玩家集合
+        self.previous_leaders.add(current_leader.name)
+        return current_leader
 
     def prepare_next_quest(self):
         """准备下一轮任务"""
@@ -376,6 +382,9 @@ class Game:
         """准备下一轮任务但不自动更换队长"""
         self.quest_number += 1
         self.current_quest = Quest(self.quest_number, self.quest_requirements[self.quest_number - 1])
+        # 记录当前队长
+        current_leader = self.get_current_leader()
+        self.previous_leaders.add(current_leader.name)
         # 不改变当前队长，等待手动选择
         self.current_phase = GamePhase.SELECT_NEXT_LEADER
 
@@ -515,13 +524,15 @@ class Game:
 
     def get_game_status(self):
         """获取游戏状态"""
+        current_leader = self.get_current_leader()
         status = {
             'quest_number': self.quest_number,
             'current_phase': self.current_phase.value,
-            'current_leader': self.get_current_leader().name,
+            'current_leader': current_leader.name,
             'players': [{
                 'name': p.name,
-                'is_leader': p == self.get_current_leader(),
+                'is_leader': p == current_leader,
+                'has_been_leader': p.name in self.previous_leaders,
                 'role': p.role.display_name if hasattr(p, 'role') else None,
                 'team': p.role.team.value if hasattr(p, 'role') else None,
                 'team_display': p.role.team.display_name if hasattr(p, 'role') else None,

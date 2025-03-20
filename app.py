@@ -510,6 +510,10 @@ def handle_select_next_leader(data):
         next_leader_player = next((p for p in room.game.players if p.name == next_leader), None)
         if not next_leader_player:
             return {'error': '选择的玩家不存在'}
+            
+        # 验证被选择的玩家是否曾当过队长
+        if next_leader in room.game.previous_leaders:
+            return {'error': '新队长必须是没当过队长的玩家'}
 
         # 更新队长
         room.game.current_leader_index = room.game.players.index(next_leader_player)
