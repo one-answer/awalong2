@@ -372,6 +372,13 @@ class Game:
         self.current_leader_index = (self.current_leader_index + 1) % len(self.players)
         self.current_phase = GamePhase.LEADER_TURN
 
+    def prepare_next_quest_without_leader_change(self):
+        """准备下一轮任务但不自动更换队长"""
+        self.quest_number += 1
+        self.current_quest = Quest(self.quest_number, self.quest_requirements[self.quest_number - 1])
+        # 不改变当前队长，等待手动选择
+        self.current_phase = GamePhase.SELECT_NEXT_LEADER
+
     def add_player(self, player: Player):
         """添加玩家"""
         if not player.name.strip():

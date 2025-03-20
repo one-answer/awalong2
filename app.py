@@ -461,8 +461,8 @@ def handle_quest_vote(data):
             else:
                 # 更新游戏阶段为选择下一任队长
                 room.game.current_phase = GamePhase.SELECT_NEXT_LEADER
-                # 准备下一轮任务
-                room.game.prepare_next_quest()
+                # 准备下一轮任务，但不自动更换队长
+                room.game.prepare_next_quest_without_leader_change()
                 
                 # 广播任务结果
                 game_state = room.game.get_game_status()
@@ -491,9 +491,11 @@ def handle_select_next_leader(data):
     try:
         room_code = data.get('room_code')
         next_leader = data.get('next_leader')
+        player_name = data.get('player_name')
         
         print(f"[DEBUG] Selecting next leader in room {room_code}:")
         print(f"Next leader: {next_leader}")
+        print(f"Current player: {player_name}")
 
         room = rooms.get(room_code)
         if not room or not room.game:
@@ -501,7 +503,7 @@ def handle_select_next_leader(data):
 
         # 验证当前玩家是否是队长
         current_leader = room.game.get_current_leader()
-        if current_leader.name != room.game.get_current_leader().name:
+        if player_name != current_leader.name:
             return {'error': '只有当前队长可以选择下一任队长'}
 
         # 验证被选择的玩家是否存在
@@ -519,6 +521,9 @@ def handle_select_next_leader(data):
             'game_state': game_state,
             'next_leader': next_leader
         }, to=room_code)
+        
+        print(f"[DEBUG] Next leader selected: {next_leader}")
+        print(f"[DEBUG] New game phase: {room.game.current_phase}")
 
         return {'success': True}
     except Exception as e:
