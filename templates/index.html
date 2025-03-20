@@ -436,13 +436,39 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             transition: all 0.2s;
             cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
         }
+        
         .form-check:hover {
-            transform: scale(1.03);
+            background-color: #f8f9fa;
             box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
         }
-        .form-check input {
+        
+        .form-check.selected {
+            background-color: #e6f4ff;
+            border: 1px solid #1890ff;
+        }
+        
+        .form-check input[type="checkbox"] {
             margin-right: 10px;
+        }
+        
+        .form-check label {
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0;
+        }
+        
+        .player-details {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .magic-token {
             display: inline-block;
@@ -1390,15 +1416,18 @@
         function updateTeamSelection(gameState) {
             const teamSelection = document.getElementById('team-selection');
             teamSelection.innerHTML = gameState.players.map(player => `
-                <div class="form-check">
+                <div class="form-check ${selectedTeam.has(player.name) ? 'selected' : ''}" 
+                     onclick="toggleTeamSelection('${player.name}')">
                     <input type="checkbox" 
                            id="select-${player.name}" 
                            value="${player.name}"
-                           onchange="handleTeamSelection('${player.name}')"
-                           ${selectedTeam.has(player.name) ? 'checked' : ''}>
-                    <label for="select-${player.name}">
-                        <span class="player-number">#${player.player_number}</span>
-                        ${player.name}
+                           ${selectedTeam.has(player.name) ? 'checked' : ''}
+                           style="pointer-events: none;">
+                    <label for="select-${player.name}" style="pointer-events: none;">
+                        <div class="player-details">
+                            <span class="player-number">#${player.player_number}</span>
+                            <span>${player.name}</span>
+                        </div>
                         ${player.magic_tokens > 0 ? `<span class="magic-token">魔法 x${player.magic_tokens}</span>` : ''}
                     </label>
                 </div>
@@ -1426,7 +1455,22 @@
             });
         }
 
-        // 更新处理队伍选择时的函数，以更新魔法指示物下拉框
+        // 添加新函数用于处理整行点击
+        function toggleTeamSelection(playerName) {
+            console.log('Toggling team selection for:', playerName);
+            const checkbox = document.getElementById(`select-${playerName}`);
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                handleTeamSelection(playerName);
+                
+                // 更新选中状态的样式
+                const formCheck = checkbox.closest('.form-check');
+                if (formCheck) {
+                    formCheck.classList.toggle('selected', checkbox.checked);
+                }
+            }
+        }
+
         function handleTeamSelection(playerName) {
             console.log('Handling team selection for:', playerName);
             const checkbox = document.getElementById(`select-${playerName}`);
