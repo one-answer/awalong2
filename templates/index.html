@@ -1577,21 +1577,83 @@
                 `;
             }
 
-            // 更新玩家列表 - 只显示游戏状态信息，不包含角色信息
+            // 更新玩家列表 - 总是更新队长状态
             const playersList = document.getElementById('players-list');
-            if (playersList && !playersList.hasAttribute('data-initialized-by-player-info')) {
-                playersList.innerHTML = gameState.players.map(player => `
-                    <div class="player-card ${player.is_leader ? 'leader' : ''} 
-                                      ${player.name === playerName ? 'self' : ''} 
-                                      ${gameState.current_quest.team.some(p => p.name === player.name) ? 'selected-team' : ''}">
-                        <span class="player-number">#${player.player_number}</span>
-                        <div class="player-name">${player.name}</div>
-                        ${player.magic_tokens > 0 ? `<span class="magic-token">魔法 x${player.magic_tokens}</span>` : ''}
-                        ${player.is_leader ? '<div class="leader-badge">队长</div>' : ''}
-                        ${gameState.current_quest.team.some(p => p.name === player.name) ? 
-                            '<div class="team-badge">任务队员</div>' : ''}
-                    </div>
-                `).join('');
+            if (playersList) {
+                // 保留现有的角色信息，但更新队长和团队状态
+                const existingCards = playersList.querySelectorAll('.player-card');
+                
+                if (existingCards.length === 0) {
+                    // 如果没有现有卡片，则完全重新生成
+                    playersList.innerHTML = gameState.players.map(player => `
+                        <div class="player-card ${player.is_leader ? 'leader' : ''} 
+                                          ${player.name === playerName ? 'self' : ''} 
+                                          ${gameState.current_quest.team.some(p => p.name === player.name) ? 'selected-team' : ''}">
+                            <span class="player-number">#${player.player_number}</span>
+                            <div class="player-name">${player.name}</div>
+                            ${player.magic_tokens > 0 ? `<span class="magic-token">魔法 x${player.magic_tokens}</span>` : ''}
+                            ${player.is_leader ? '<div class="leader-badge">队长</div>' : ''}
+                            ${gameState.current_quest.team.some(p => p.name === player.name) ? 
+                                '<div class="team-badge">任务队员</div>' : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    // 更新现有卡片的状态
+                    existingCards.forEach(card => {
+                        const playerName = card.querySelector('.player-name').textContent;
+                        const player = gameState.players.find(p => p.name === playerName);
+                        
+                        if (player) {
+                            // 更新队长状态
+                            card.classList.toggle('leader', player.is_leader);
+                            
+                            // 更新队长徽章
+                            let leaderBadge = card.querySelector('.leader-badge');
+                            if (player.is_leader) {
+                                if (!leaderBadge) {
+                                    leaderBadge = document.createElement('div');
+                                    leaderBadge.className = 'leader-badge';
+                                    leaderBadge.textContent = '队长';
+                                    card.appendChild(leaderBadge);
+                                }
+                            } else if (leaderBadge) {
+                                leaderBadge.remove();
+                            }
+                            
+                            // 更新团队状态
+                            const isInTeam = gameState.current_quest.team.some(p => p.name === playerName);
+                            card.classList.toggle('selected-team', isInTeam);
+                            
+                            // 更新团队徽章
+                            let teamBadge = card.querySelector('.team-badge');
+                            if (isInTeam) {
+                                if (!teamBadge) {
+                                    teamBadge = document.createElement('div');
+                                    teamBadge.className = 'team-badge';
+                                    teamBadge.textContent = '任务队员';
+                                    card.appendChild(teamBadge);
+                                }
+                            } else if (teamBadge) {
+                                teamBadge.remove();
+                            }
+                            
+                            // 更新魔法指示物
+                            const magicTokenSpan = card.querySelector('.magic-token');
+                            if (player.magic_tokens > 0) {
+                                if (!magicTokenSpan) {
+                                    const newTokenSpan = document.createElement('span');
+                                    newTokenSpan.className = 'magic-token';
+                                    newTokenSpan.textContent = `魔法 x${player.magic_tokens}`;
+                                    card.querySelector('.player-name').after(newTokenSpan);
+                                } else {
+                                    magicTokenSpan.textContent = `魔法 x${player.magic_tokens}`;
+                                }
+                            } else if (magicTokenSpan) {
+                                magicTokenSpan.remove();
+                            }
+                        }
+                    });
+                }
             }
 
             // 更新任务信息
