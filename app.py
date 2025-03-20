@@ -369,10 +369,9 @@ def handle_quest_vote(data):
         room_code = data.get('room_code')
         success = data.get('success')
         player_name = data.get('player_name')
-        use_magic_token = data.get('use_magic_token', False)
         
         print(f"[DEBUG] Received quest vote for room {room_code}:")
-        print(f"Player: {player_name}, Vote: {'success' if success else 'fail'}, Use Magic: {use_magic_token}")
+        print(f"Player: {player_name}, Vote: {'success' if success else 'fail'}")
 
         room = rooms.get(room_code)
         if not room or not room.game:
@@ -393,15 +392,11 @@ def handle_quest_vote(data):
         if current_player.name in room.game.current_quest.votes:
             return {'error': '你已经投过票了'}
 
-        # 处理魔法指示物
-        if use_magic_token:
-            # 检查玩家是否有魔法指示物
-            if current_player.magic_tokens <= 0:
-                return {'error': '你没有魔法指示物'}
-                
+        # 检查玩家是否有魔法指示物，如果有则必须使用
+        if current_player.magic_tokens > 0:
             # 使用魔法指示物
             current_player.magic_tokens -= 1
-            print(f"[DEBUG] {player_name} used a magic token")
+            print(f"[DEBUG] {player_name} used a magic token (forced)")
             
             # 如果是摩根勒菲，可以选择失败，否则必须成功
             if current_player.role == Role.MORGAN:
@@ -419,6 +414,12 @@ def handle_quest_vote(data):
         print(f"[DEBUG] Current votes: {room.game.current_quest.votes}")
         print(f"[DEBUG] Team size: {len(room.game.current_quest.team)}")
         print(f"[DEBUG] Votes count: {len(room.game.current_quest.votes)}")
+
+        # 返回玩家的投票结果
+        vote_result = {
+            'success': True,
+            'vote': success
+        }
 
         # 检查是否所有队员都已投票
         if len(room.game.current_quest.votes) == len(room.game.current_quest.team):
@@ -477,7 +478,7 @@ def handle_quest_vote(data):
             game_state = room.game.get_game_status()
             socketio.emit('game_update', {'game_state': game_state}, to=room_code)
 
-        return {'success': True}
+        return vote_result
     except Exception as e:
         print(f"[ERROR] Exception in quest_vote: {str(e)}")
         import traceback

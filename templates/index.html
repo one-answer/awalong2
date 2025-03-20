@@ -588,6 +588,31 @@
             background-color: #274d94;
             box-shadow: 0 6px 10px rgba(0,0,0,0.15);
         }
+        .vote-result {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .result-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .vote-badge {
+            padding: 10px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .waiting-text {
+            color: #6c757d;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -707,14 +732,23 @@
                 <div id="quest-vote-controls" style="display: none;">
                     <h3 class="fw-bold mb-3">任务投票</h3>
                     <p>你是本次任务的队员，请选择任务结果：</p>
-                    <div id="magic-token-vote-info" class="magic-token-info" style="display: none;">
-                        你拥有一个魔法指示物，是否要在本次任务中使用？
-                        <div class="form-check mt-2">
-                            <input type="checkbox" id="use-magic-token" onchange="toggleMagicTokenUse()">
-                            <label for="use-magic-token">使用魔法指示物</label>
+                    <div id="magic-token-info" class="magic-token-info" style="display: none;">
+                        <p><strong>注意：</strong>你拥有魔法指示物，将在投票时自动使用。</p>
+                        <p class="mb-0">
+                            <span class="badge bg-info">提示</span>
+                            魔法指示物会强制正义阵营选择成功，摩根勒菲依然可以选择失败。
+                        </p>
+                    </div>
+                    <div id="vote-result" class="vote-result" style="display: none;">
+                        <div class="result-box">
+                            <p>你的投票已提交：</p>
+                            <div class="vote-badge">
+                                <span id="vote-result-badge"></span>
+                            </div>
+                            <p class="waiting-text">等待其他队员完成投票...</p>
                         </div>
                     </div>
-                    <div class="vote-buttons">
+                    <div class="vote-buttons" id="vote-buttons">
                         <button onclick="submitQuestVote(true)" class="success-button">
                             成功
                         </button>
@@ -1233,58 +1267,6 @@
             });
         }
         
-        // 魔法指示物使用状态
-        let useMagicToken = false;
-        
-        function toggleMagicTokenUse() {
-            const checkbox = document.getElementById('use-magic-token');
-            if (!checkbox) return;
-            
-            useMagicToken = checkbox.checked;
-            console.log('Use magic token:', useMagicToken);
-            
-            // 获取当前玩家信息和角色
-            const gameState = window.currentGameState;
-            if (!gameState) return;
-            
-            const currentPlayer = gameState.players.find(p => p.name === playerName);
-            if (!currentPlayer) return;
-            
-            const failButton = document.getElementById('fail-vote-button');
-            if (!failButton) return;
-            
-            // 如果使用魔法指示物且不是摩根勒菲，禁用失败按钮
-            if (useMagicToken && currentPlayer.role !== '摩根勒菲') {
-                failButton.disabled = true;
-                failButton.style.opacity = '0.5';
-                failButton.style.cursor = 'not-allowed';
-            } else {
-                failButton.disabled = false;
-                failButton.style.opacity = '1';
-                failButton.style.cursor = 'pointer';
-            }
-        }
-
-        function submitQuestVote(success) {
-            console.log('Submitting quest vote:', success);
-            socket.emit('submit_quest_vote', {
-                room_code: roomCode,
-                player_name: playerName,
-                success: success,
-                use_magic_token: useMagicToken
-            }, (response) => {
-                console.log('Quest vote response:', response);
-                if (response.error) {
-                    alert(response.error);
-                } else {
-                    // 重置魔法指示物使用状态
-                    useMagicToken = false;
-                    const checkbox = document.getElementById('use-magic-token');
-                    if (checkbox) checkbox.checked = false;
-                }
-            });
-        }
-
         // 添加选择下一任队长的函数
         function selectNextLeader(nextLeaderName) {
             console.log('Selecting next leader:', nextLeaderName);
@@ -1417,44 +1399,41 @@
                 if (gameState.current_phase === 'QUEST_VOTE' && isInTeam) {
                     questVoteControls.style.display = 'block';
                     
-                    // 显示魔法指示物使用选项
-                    const magicTokenInfo = document.getElementById('magic-token-vote-info');
+                    // 显示魔法指示物信息
+                    const magicTokenInfo = document.getElementById('magic-token-info');
                     if (magicTokenInfo && currentPlayer && currentPlayer.magic_tokens > 0) {
                         magicTokenInfo.style.display = 'block';
                     } else if (magicTokenInfo) {
                         magicTokenInfo.style.display = 'none';
                     }
                     
-                    // 邪恶阵营可以投失败票
-                    const voteButtons = questVoteControls.querySelector('.vote-buttons');
-                    if (voteButtons && currentPlayer.team === 'EVIL') {
-                        voteButtons.innerHTML = `
-                            <button onclick="submitQuestVote(true)" class="success-button">
-                                成功
-                            </button>
-                            <button onclick="submitQuestVote(false)" class="fail-button" id="fail-vote-button">
-                                失败
-                            </button>
-                        `;
-                    } else if (voteButtons) {
-                        // 正义阵营只能投成功票
-                        voteButtons.innerHTML = `
-                            <button onclick="submitQuestVote(true)" class="success-button">
-                                成功
-                            </button>
-                        `;
-                    }
+                    // 检查玩家是否已投票
+                    const hasVoted = gameState.current_quest.votes.includes(playerName);
+                    const voteButtons = document.getElementById('vote-buttons');
+                    const voteResult = document.getElementById('vote-result');
                     
-                    // 重置魔法指示物使用状态
-                    useMagicToken = false;
-                    const checkbox = document.getElementById('use-magic-token');
-                    if (checkbox) checkbox.checked = false;
-                    // 恢复失败按钮状态
-                    const failButton = document.getElementById('fail-vote-button');
-                    if (failButton) {
-                        failButton.disabled = false;
-                        failButton.style.opacity = '1';
-                        failButton.style.cursor = 'pointer';
+                    if (hasVoted) {
+                        if (voteButtons) voteButtons.style.display = 'none';
+                        if (voteResult) voteResult.style.display = 'block';
+                    } else {
+                        if (voteButtons) voteButtons.style.display = 'flex';
+                        if (voteResult) voteResult.style.display = 'none';
+                        
+                        // 邪恶阵营可以投失败票，或者摩根勒菲且有魔法指示物
+                        const canVoteFail = currentPlayer.team === 'EVIL' || 
+                                         (currentPlayer.role === '摩根勒菲' && currentPlayer.magic_tokens > 0);
+                        
+                        // 如果有魔法指示物但不是摩根勒菲，禁用失败按钮
+                        const failButton = document.getElementById('fail-vote-button');
+                        if (failButton) {
+                            if (currentPlayer.magic_tokens > 0 && currentPlayer.role !== '摩根勒菲') {
+                                failButton.style.display = 'none';
+                            } else if (!canVoteFail) {
+                                failButton.style.display = 'none';
+                            } else {
+                                failButton.style.display = 'inline-block';
+                            }
+                        }
                     }
                 } else {
                     questVoteControls.style.display = 'none';
@@ -1592,6 +1571,34 @@
 
         // 添加队伍选择相关函数
         let selectedTeam = new Set();
+
+        function submitQuestVote(success) {
+            console.log('Submitting quest vote:', success);
+            socket.emit('submit_quest_vote', {
+                room_code: roomCode,
+                player_name: playerName,
+                success: success
+            }, (response) => {
+                console.log('Quest vote response:', response);
+                if (response.error) {
+                    alert(response.error);
+                } else {
+                    // 显示投票结果
+                    const voteButtons = document.getElementById('vote-buttons');
+                    const voteResult = document.getElementById('vote-result');
+                    const voteResultBadge = document.getElementById('vote-result-badge');
+                    
+                    if (voteButtons) voteButtons.style.display = 'none';
+                    if (voteResult) voteResult.style.display = 'block';
+                    
+                    if (voteResultBadge) {
+                        voteResultBadge.textContent = response.vote ? '成功' : '失败';
+                        voteResultBadge.className = response.vote ? 
+                            'badge bg-success p-2' : 'badge bg-danger p-2';
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html> 
